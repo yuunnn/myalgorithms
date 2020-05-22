@@ -1,12 +1,12 @@
 from algs.algorithms.tree import BinaryTree, Node
-import numpy as np
 from collections import namedtuple
+import numpy as np
 
 
 class Cart:
     NodeValue = namedtuple("NodeValue", ['col', 'split', 'res_value'])
 
-    def __init__(self, max_depth, min_leave_samples=3, min_leave_samples_type=3):
+    def __init__(self, max_depth, min_leave_samples=3, min_leave_samples_type=1):
         self._tree = BinaryTree()
         self._tree.root = Node(None)
         self.max_depth = max_depth
@@ -39,15 +39,10 @@ class Cart:
             node.value = self.NodeValue(col=_col, split=_split, res_value=np.mean(_y))
             node.left = Node(None)
             node.right = Node(None)
+
             _index = _x[:, _col] < _split
-            _x1 = _x[_index]
-            _x2 = _x[~_index]
-
-            _y1 = _y[_index]
-            _y2 = _y[~_index]
-
-            _build(node.left, depth - 1, _x1, _y1)
-            _build(node.right, depth - 1, _x2, _y2)
+            _build(node.left, depth - 1, _x[_index], _y[_index])
+            _build(node.right, depth - 1, _x[~_index], _y[~_index])
 
         _build(self._tree.root, self.max_depth, x, y)
 
