@@ -6,7 +6,7 @@ class Node:
         self.right = None
 
 
-class Btree:
+class BinaryTree:
 
     def __init__(self):
         self.root = None
@@ -34,23 +34,23 @@ class Btree:
         if node is None:
             return None
         _res.append(node.value)
-        Btree.pre_order_travel(node.left, _res)
-        Btree.pre_order_travel(node.right, _res)
+        BinaryTree.pre_order_travel(node.left, _res)
+        BinaryTree.pre_order_travel(node.right, _res)
 
     @staticmethod
     def in_order_travel(node, _res):
         if node is None:
             return None
-        Btree.in_order_travel(node.left, _res)
+        BinaryTree.in_order_travel(node.left, _res)
         _res.append(node.value)
-        Btree.in_order_travel(node.right, _res)
+        BinaryTree.in_order_travel(node.right, _res)
 
     @staticmethod
     def post_order_travel(node, _res):
         if node is None:
             return None
-        Btree.post_order_travel(node.left, _res)
-        Btree.post_order_travel(node.right, _res)
+        BinaryTree.post_order_travel(node.left, _res)
+        BinaryTree.post_order_travel(node.right, _res)
         _res.append(node.value)
 
     def travel(self, method="pre"):
@@ -63,10 +63,38 @@ class Btree:
             self.post_order_travel(self.root, _res)
         return _res
 
+    @property
+    def leaves(self):
+        _leaves = []
 
-t = Btree()
-L = [1, 2, 3, 4, 5]
-for i in L:
-    t.add(i)
-res = t.travel(method="pre")
-print(res)
+        def _travel(node, _leaves):
+            if node is None:
+                return None
+            if node.left is None and node.right is None:
+                _leaves.append(node.value)
+            if node.left is not None:
+                _travel(node.left, _leaves)
+            if node.right is not None:
+                _travel(node.right, _leaves)
+
+        _travel(self.root, _leaves)
+
+        return _leaves
+
+    @property
+    def height(self):
+
+        def _travel(node):
+            if node.value is None:
+                return 0
+            if node.left is None and node.right is None:
+                return 1
+            if node.left is None and node.right is not None:
+                return 1 + _travel(node.right)
+            if node.left is not None and node.right is None:
+                return 1 + _travel(node.left)
+            if node.left is not None and node.right is not None:
+                return 1 + max(_travel(node.left), _travel(node.right))
+
+        return _travel(self.root)
+
