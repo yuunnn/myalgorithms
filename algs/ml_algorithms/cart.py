@@ -32,7 +32,11 @@ class Cart:
                 for val_index in range(1, len(_x) - 1):
                     _y1 = _y[val_index:]
                     _y2 = _y[:val_index]
-                    _tmp_loss = sum((_y1 - np.mean(_y1)) ** 2) + sum((_y2 - np.mean(_y2)) ** 2)
+
+                    # 化简而来
+                    _sum_y1, _sum_y2 = np.sum(_y1), np.sum(_y2)
+                    _tmp_loss = _sum_y1 + _sum_y2 - _sum_y1 ** 2 / len(_y1) - _sum_y2 ** 2 / len(_y2)
+
                     if _tmp_loss < _loss:
                         _col, _split, _loss = col, _x[val_index, col], _tmp_loss
 
