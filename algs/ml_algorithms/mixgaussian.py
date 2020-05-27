@@ -27,7 +27,7 @@ class Gmm:
         _, shape = pinv_covariances.shape
         part1 = 1 / ((2 * np.pi) ** (shape / 2) * det_covariances ** 0.5)
         tmp = (x - mu).reshape(-1, 1)
-        part2 = np.exp(-0.5 * reduce(np.matmul, (tmp.T, pinv_covariances, tmp))[0][0])
+        part2 = np.exp(-0.5 * reduce(np.matmul, (tmp.T, pinv_covariances, tmp)).flat[0])
         return part1 * part2
 
     def e_step(self, x):

@@ -1,6 +1,7 @@
 from algs.ml_algorithms.cart import CartRegressor, CartClassifier
 from algs.ml_algorithms.mixgaussian import Gmm
 from algs.ml_algorithms.utils import compute_mse, compute_logloss, compute_confusion_matrix
+from algs.ml_algorithms.svm import Svm
 from sklearn.datasets import load_iris, load_boston, load_breast_cancer
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.metrics import log_loss
@@ -49,11 +50,25 @@ from sklearn.model_selection import train_test_split
 # print(compute_confusion_matrix(cart2.predict(x_test), y_test))
 
 # gmm
-x, y = load_iris(return_X_y=1)
-gmm = Gmm(max_iter=50, n_components=3)
-gmm.fit(x)
-proba = gmm.predict_proba(x)
-y_pre = gmm.predict(x)
-print(y_pre)
-print(y)
+# x, y = load_iris(return_X_y=1)
+# gmm = Gmm(max_iter=50, n_components=3)
+# gmm.fit(x)
+# proba = gmm.predict_proba(x)
+# y_pre = gmm.predict(x)
+# print(y_pre)
+# print(y)
+
+
+# svm
+def standardization(data):
+    mu = np.mean(data, axis=0)
+    sigma = np.std(data, axis=0)
+    return (data - mu) / sigma
+
+x, y = load_breast_cancer(return_X_y=1)
+x = standardization(x)
+
+svm = Svm(max_iter=100)
+svm.fit(x, y)
+print(svm.predict(x))
 
