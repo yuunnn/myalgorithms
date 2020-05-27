@@ -68,7 +68,7 @@ def standardization(data):
 x, y = load_breast_cancer(return_X_y=1)
 x = standardization(x)
 
-svm = Svm(max_iter=100)
+svm = Svm(max_iter=1000)
 svm.fit(x, y)
 print(svm.predict(x))
-
+print(svm.alpha)

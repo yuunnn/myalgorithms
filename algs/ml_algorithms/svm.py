@@ -26,28 +26,27 @@ class Svm:
             return np.dot(x1, x2)
 
         for iter_ in range(self.max_iter):
-            #a1, a2 = self.find_smo_alpha(x, y, alpha)
-            for a1 in range(len(alpha)-1):
-                for a2 in range(1,len(alpha)):
-                    if y[a1] == y[a2]:
-                        L = max(0, alpha[a2] - alpha[a1])
-                        H = min(c, c + alpha[a2] - alpha[a1])
-                    else:
-                        L = max(0, alpha[a2] + alpha[a1] - c)
-                        H = min(c, alpha[a2] + alpha[a1])
-                    e1 = np.sum([alpha[j] * y[j] * k(x[j], x[a1]) for j in range(m)]) + b - y[a1]
-                    e2 = np.sum([alpha[j] * y[j] * k(x[j], x[a2]) for j in range(m)]) + b - y[a2]
-                    eta = np.sum((x[a1] - x[a2]) ** 2)
-                    alpha_a2_old = alpha[a2]
-                    alpha_a1_old = alpha[a1]
-                    a2_unc = alpha_a2_old + y[a2] * (e2 - e1) / eta
-                    alpha[a2] = np.clip(a2_unc, L, H)
-                    alpha[a1] = alpha_a1_old + y[a1] * y[a2] * (alpha_a2_old - alpha[a2])
-                    b1 = -e1 - y[a1] * k(x[a1], x[a1]) * (alpha[1] - alpha_a1_old) - \
-                         y[a2] * k(x[a2], x[a1]) * (alpha[a2] - alpha_a2_old) + b
-                    b2 = -e2 - y[a1] * k(x[a1], x[a2]) * (alpha[1] - alpha_a1_old) - \
-                         y[a2] * k(x[a2], x[a2]) * (alpha[a2] - alpha_a2_old) + b
-                    b = 0.5 * (b1 + b2)
+            a1, a2 = self.find_smo_alpha(x, y, alpha)
+            if y[a1] == y[a2]:
+                L = max(0, alpha[a2] - alpha[a1])
+                H = min(c, c + alpha[a2] - alpha[a1])
+            else:
+                L = max(0, alpha[a2] + alpha[a1] - c)
+                H = min(c, alpha[a2] + alpha[a1])
+            e1 = np.sum([alpha[j] * y[j] * k(x[j], x[a1]) for j in range(m)]) + b - y[a1]
+            e2 = np.sum([alpha[j] * y[j] * k(x[j], x[a2]) for j in range(m)]) + b - y[a2]
+            eta = np.sum((x[a1] - x[a2]) ** 2)
+            alpha_a2_old = alpha[a2]
+            alpha_a1_old = alpha[a1]
+            a2_unc = alpha_a2_old + y[a2] * (e1 - e2) / eta
+
+            alpha[a2] = np.clip(a2_unc, L, H)
+            alpha[a1] = alpha_a1_old + y[a1] * y[a2] * (alpha_a2_old - alpha[a2])
+            b1 = -e1 - y[a1] * k(x[a1], x[a1]) * (alpha[1] - alpha_a1_old) - \
+                y[a2] * k(x[a2], x[a1]) * (alpha[a2] - alpha_a2_old) + b
+            b2 = -e2 - y[a1] * k(x[a1], x[a2]) * (alpha[1] - alpha_a1_old) - \
+                y[a2] * k(x[a2], x[a2]) * (alpha[a2] - alpha_a2_old) + b
+            b = 0.5 * (b1 + b2)
 
         none_zero_index = [i for i in range(len(alpha)) if abs(alpha[i]) >= 1e-4]
         self.support_vector = x[none_zero_index]
