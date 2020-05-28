@@ -65,10 +65,12 @@ def standardization(data):
     sigma = np.std(data, axis=0)
     return (data - mu) / sigma
 
+
 x, y = load_breast_cancer(return_X_y=1)
 x = standardization(x)
 
-svm = Svm(max_iter=1000)
+
+svm = Svm(max_iter=100)
 svm.fit(x, y)
 print(svm.predict(x))
 print(svm.alpha)
