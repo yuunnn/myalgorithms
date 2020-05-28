@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Svm:
 
     def __init__(self, c=1, max_iter=100, tol=1e-5):
@@ -17,6 +18,7 @@ class Svm:
         m = x.shape[0]
         alpha = [0] * m
 
+        # 可以换成核函数
         def k(x1, x2):
             return np.dot(x1, x2)
 
@@ -53,7 +55,7 @@ class Svm:
                     L = max(0, alpha[a2] + alpha[a1] - c)
                     H = min(c, alpha[a2] + alpha[a1])
 
-                eta = np.sum((x[a1] - x[a2]) ** 2)
+                eta = k(x[a1], x[a1]) + k(x[a2], x[a2]) - 2 * k(x[a1], x[a2])
                 alpha_a2_old = alpha[a2]
                 alpha_a1_old = alpha[a1]
                 a2_unc = alpha_a2_old + y[a2] * (e1 - e2) / eta
