@@ -28,3 +28,9 @@ def compute_confusion_matrix(ypred, yture):
     if len(ypred) != len(yture):
         raise ValueError("y1.length != y2.length")
     return pd.crosstab(ypred,yture)
+
+
+def standardization(x):
+    mu = np.mean(x, axis=0)
+    sigma = np.std(x, axis=0)
+    return (x - mu) / sigma
