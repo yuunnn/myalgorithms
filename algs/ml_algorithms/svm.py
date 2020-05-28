@@ -61,7 +61,7 @@ class Svm:
                 a2_unc = alpha_a2_old + y[a2] * (e1 - e2) / eta
 
                 a2_unc_tmp = np.clip(a2_unc, L, H)
-                if a2_unc_tmp < self.tol:
+                if a2_unc_tmp - alpha_a2_old < self.tol:
                     continue
 
                 alpha[a2] = a2_unc_tmp
