@@ -12,9 +12,8 @@ y = np.array([-1 if i <= 0 else 1 for i in y])
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=5)
 
-svm = Svm(max_iter=100)
+svm = Svm(max_iter=50, kernel='linear', tol=1e-5)
 svm.fit(x_train, y_train)
 ypre = svm.predict(x_test)
-
 print(pd.crosstab(y_test, ypre))
 

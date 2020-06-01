@@ -1,9 +1,28 @@
 import numpy as np
 
 
+def rbf(x: np.ndarray, y: np.ndarray, sigma=5):
+    tmp = x - y
+    if len(y.shape) == 1:
+        return np.exp(-np.dot(tmp, tmp) / (2 * sigma ** 2))
+    return np.exp(-np.sum(tmp ** 2, axis=1) / (2 * sigma ** 2))
+
+
+def linear_kernel(x: np.ndarray, y: np.ndarray):
+    return np.dot(x, y)
+
+
+def poly_kernel(x: np.ndarray, y: np.ndarray, d=2):
+    return (np.dot(x, y) + 1) ** d
+
+
+KERNEL_MAP = {'rbf': rbf, 'linear': linear_kernel, 'poly': poly_kernel}
+
+
 class Svm:
 
-    def __init__(self, c=1, max_iter=100, tol=1e-5):
+    def __init__(self, c=1, max_iter=100, tol=1e-5, kernel='linear'):
+        self.kernel = KERNEL_MAP[kernel]
         self.c = c
         self.max_iter = max_iter
         self.tol = tol
@@ -17,13 +36,10 @@ class Svm:
         b = 0
         m = x.shape[0]
         alpha = [0] * m
-
-        # 可以换成核函数
-        def k(x1, x2):
-            return np.dot(x1, x2)
-
+        k = self.kernel
         # init Ei
         e = [np.sum([alpha[j] * y[j] * k(x[j], x[iter_]) for j in range(m)]) + b - y[iter_] for iter_ in range(m)]
+
         for iter_ in range(self.max_iter):
             # check kkt
             for a1 in range(m):
@@ -76,7 +92,7 @@ class Svm:
                 e[a1] = np.sum([alpha[j] * y[j] * k(x[j], x[a1]) for j in range(m)]) + b - y[a1]
                 e[a2] = np.sum([alpha[j] * y[j] * k(x[j], x[a2]) for j in range(m)]) + b - y[a2]
 
-        none_zero_index = [i for i in range(m) if alpha[i] >= 1e-4]
+        none_zero_index = [i for i in range(m) if alpha[i] >= self.tol]
         self.support_vector = x[none_zero_index]
         self.alpha = np.array(alpha)[none_zero_index]
         self.support_vector_sign = y[none_zero_index]
@@ -92,10 +108,9 @@ class Svm:
         def sign(y):
             return 1 if y > 0 else -1
 
-        def k(x1, x2):
-            return np.dot(x1, x2)
-
+        k = self.kernel
         res = []
+        
         for i in range(x.shape[0]):
             res.append(sign(
                 np.sum(
