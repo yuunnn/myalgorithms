@@ -188,3 +188,23 @@ class Hmm:
 
             # 再更新Pi
             self.Pi = np.sum([gamma[i][0] for i in range(m)], axis=0) / m
+
+    def predict(self, O: np.ndarray) -> np.ndarray:
+        # 初始化
+        T = len(O)
+        N = len(self.N)
+        sigma = np.zeros((T, N))
+        sigma[0] = self.Pi * self.B[:, self.K[O[0]]]
+        psai = np.zeros((T, N))
+        I = np.array([0] * T)
+        # 动态规划
+        for t in range(1, T):
+            for i in range(N):
+                sigma[t][i] = max([sigma[t - 1][j] * self.A[j][i] for j in range(N)]) * self.B[i][self.K[O[t]]]
+                psai[t][i] = np.argmax([sigma[t - 1][j] * self.A[j][i] for j in range(N)])
+        # 回溯
+        I[-1] = int(np.argmax(sigma[-1]))
+        for t in range(T - 2, -1, -1):
+            I[t] = int(psai[t + 1][I[t + 1]])
+
+        return I
