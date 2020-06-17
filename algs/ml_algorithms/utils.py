@@ -34,3 +34,7 @@ def standardization(x):
     mu = np.mean(x, axis=0)
     sigma = np.std(x, axis=0)
     return (x - mu) / sigma
+
+
+def sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
