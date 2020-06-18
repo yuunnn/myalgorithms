@@ -9,4 +9,5 @@
 7 gbdt classifier<br>
 
 ## algorithms
-1 binary tree
+1 binary tree<br>
+2 fast pow<br>
