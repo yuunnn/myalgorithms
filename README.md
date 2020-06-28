@@ -10,4 +10,5 @@
 
 ## algorithms
 1 binary tree<br>
-2 fast pow<br>
+2 binary sort tree<br>
+3 fast pow<br>
