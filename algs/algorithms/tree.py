@@ -320,13 +320,22 @@ class AVLTree(BinarySortTree):
         if self.root.value == node.value:
             self.root = point
 
+    def update_balance_remove(self, node: Node) -> None:
+
+        if abs(self.balance_factor(node)) > 1:
+            self.rebalance(node)
+            self.update_balance(node.p)
+            return
+        if node.p is not None and self.balance_factor(node.p) != 0:
+            self.update_balance(node.p)
+
     def delete_node(self, node: Node) -> Node:
         if node.left is None:
             self.transplant(node, node.right)
-            self.update_balance(node.p)
+            self.update_balance_remove(node.p)
         elif node.right is None:
             self.transplant(node, node.left)
-            self.update_balance(node.p)
+            self.update_balance_remove(node.p)
         else:
             current_node = self.get_minimum_node(node.right)
             tmp_node = current_node.p
@@ -337,4 +346,4 @@ class AVLTree(BinarySortTree):
             self.transplant(node, current_node)
             current_node.left = node.left
             current_node.left.p = current_node
-            self.update_balance(tmp_node)
+            self.update_balance_remove(tmp_node)
