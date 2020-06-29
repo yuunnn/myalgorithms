@@ -40,7 +40,7 @@ def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
 
 
-def draw_tree(node):
+def draw_tree(node, title):
     # 该代码来源于https://zhuanlan.zhihu.com/p/35574577
     import networkx as nx
     import matplotlib.pyplot as plt
@@ -61,6 +61,7 @@ def draw_tree(node):
 
     graph = nx.DiGraph()
     graph, pos = create_graph(graph, node)
-    fig, ax = plt.subplots(figsize=(8, 10))  # 比例可以根据树的深度适当调节
-    nx.draw_networkx(graph, pos, ax=ax, node_size=300)
+    plt.figure()
+    nx.draw_networkx(graph, pos, node_size=300)
+    plt.title(title)
     plt.show()

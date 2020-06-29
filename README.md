@@ -11,4 +11,5 @@
 ## algorithms
 1 binary tree<br>
 2 binary sort tree<br>
+3 avl tree<br>
 3 fast pow<br>

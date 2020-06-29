@@ -13,6 +13,7 @@ class Node:
     def __repr__(self):
         return "value:{}".format(self.value)
 
+
 class BinaryTree:
 
     def __init__(self):
@@ -171,11 +172,11 @@ class BinarySortTree(BinaryTree):
             return self.get_minimum_node(node.right)
         else:
             point = node.p
-            while point is not None and node.value == point.right.value:
+            while point is not None and point.right is not None and node.value == point.right.value:
                 node = point
                 point = point.p
             if point.value == self.root.value:
-                raise ValueError("this node has not a successor node")
+                raise ValueError("this node has not a successor node,try another")
             return point
 
     def get_successor_value(self, value: Union[int, float]) -> Union[int, float]:
@@ -187,11 +188,11 @@ class BinarySortTree(BinaryTree):
             return self.get_maximum_node(node.left)
         else:
             point = node.p
-            while point.p is not None and point.left.value == node.value:
+            while point.p is not None and point.left is not None and point.left.value == node.value:
                 node = point
                 point = node.p
             if point.value == self.root.value:
-                raise ValueError("this node has not a predecessor node")
+                raise ValueError("this node has not a predecessor node,try another")
             return point
 
     def get_predecessor_value(self, value: Union[int, float]) -> Union[int, float]:
@@ -279,42 +280,7 @@ class AVLTree(BinarySortTree):
             else:
                 self.right_rotate(node)
 
-    def rebalance(self, node):
-        if node.balanceFactor < 0:
-            if node.rightChild.balanceFactor > 0:
-                self.rotateRight(node.rightChild)
-                self.rotateLeft(node)
-            else:
-                self.rotateLeft(node)
-        elif node.balanceFactor > 0:
-            if node.leftChild.balanceFactor < 0:
-                self.rotateLeft(node.leftChild)
-                self.rotateRight(node)
-            else:
-                self.rotateRight(node)
-
-
     def left_rotate(self, node: Node) -> None:
-        point = node.left
-        if point.right is not None:
-            node.left = point.right
-            point.right.p = node
-        else:
-            node.left = None
-        point.right = node
-        point.p = node.p
-        node.p = point
-        if point.p is not None:
-            if point.p.right is not None:
-                if point.p.right.value == node.value:
-                    point.p.right = point
-            elif point.p.left is not None:
-                if point.p.left.value == node.value:
-                    point.p.left = point
-        if self.root.value == node.value:
-            self.root = point
-
-    def right_rotate(self, node: Node) -> None:
         point = node.right
         if point.left is not None:
             node.right = point.left
@@ -328,26 +294,47 @@ class AVLTree(BinarySortTree):
             if point.p.right is not None:
                 if point.p.right.value == node.value:
                     point.p.right = point
-            elif point.p.left is not None:
+            if point.p.left is not None:
                 if point.p.left.value == node.value:
                     point.p.left = point
         if self.root.value == node.value:
             self.root = point
 
-    # def rotateLeft(self, rotRoot):
-    #     newRoot = rotRoot.rightChild
-    #     rotRoot.rightChild = newRoot.leftChild
-    #     if newRoot.leftChild != None:
-    #         newRoot.leftChild.parent = rotRoot
-    #     newRoot.parent = rotRoot.parent
-    #     if rotRoot.isRoot():
-    #         self.root = newRoot
-    #     else:
-    #         if rotRoot.isLeftChild():
-    #             rotRoot.parent.leftChild = newRoot
-    #         else:
-    #             rotRoot.parent.rightChild = newRoot
-    #     newRoot.leftChild = rotRoot
-    #     rotRoot.parent = newRoot
-    #     rotRoot.balanceFactor = rotRoot.balanceFactor + 1 - min(newRoot.balanceFactor, 0)
-    #     newRoot.balanceFactor = newRoot.balanceFactor + 1 + max(rotRoot.balanceFactor, 0)
+    def right_rotate(self, node: Node) -> None:
+        point = node.left
+        if point.right is not None:
+            node.left = point.right
+            point.right.p = node
+        else:
+            node.left = None
+        point.right = node
+        point.p = node.p
+        node.p = point
+        if point.p is not None:
+            if point.p.right is not None:
+                if point.p.right.value == node.value:
+                    point.p.right = point
+            if point.p.left is not None:
+                if point.p.left.value == node.value:
+                    point.p.left = point
+        if self.root.value == node.value:
+            self.root = point
+
+    def delete_node(self, node: Node) -> Node:
+        if node.left is None:
+            self.transplant(node, node.right)
+            self.update_balance(node.p)
+        elif node.right is None:
+            self.transplant(node, node.left)
+            self.update_balance(node.p)
+        else:
+            current_node = self.get_minimum_node(node.right)
+            tmp_node = current_node.p
+            if current_node.p.value != node.value:
+                self.transplant(current_node, current_node.right)
+                current_node.right = node.right
+                current_node.right.p = current_node
+            self.transplant(node, current_node)
+            current_node.left = node.left
+            current_node.left.p = current_node
+            self.update_balance(tmp_node)
