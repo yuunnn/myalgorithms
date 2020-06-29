@@ -1,6 +1,6 @@
 import numpy as np
 from .cart import CartRegressor
-from .utils import sigmoid
+from algs.utils import sigmoid
 
 
 class GbdtRegressor:

@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_breast_cancer
 from algs.ml_algorithms.svm import Svm
 
-from algs.ml_algorithms.utils import standardization
+from algs.utils import standardization
 
 x, y = load_breast_cancer(return_X_y=1)
 x = standardization(x)
