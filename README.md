@@ -12,4 +12,5 @@
 1 binary tree<br>
 2 binary sort tree<br>
 3 avl tree<br>
-3 fast pow<br>
+4 rb tree (llrb)<br>
+5 fast pow<br>

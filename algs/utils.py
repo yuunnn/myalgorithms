@@ -47,15 +47,18 @@ def draw_tree(node, title):
 
     def create_graph(G, node, pos={}, x=0, y=0, layer=1, node_colors=[], nil_id=nil_id):
         pos[node.value] = (x, y)
-        if node.color == 1:
-            node_colors.append('r')
+        if isinstance(node.value,str) and node.value.startswith("nil"):
+            node_colors.append("black")
         else:
-            node_colors.append('b')
+            if node.color == 1:
+                node_colors.append('r')
+            else:
+                node_colors.append('b')
         if node.left:
             if node.left.value is None:
                 node.left.value = "nil" + str(nil_id[-1])
                 nil_id.append(nil_id[-1]+1)
-            G.add_edge(node.value or "nil", node.left.value)
+            G.add_edge(node.value, node.left.value)
             l_x, l_y = x - 1 / 2 ** layer, y - 1
             l_layer = layer + 1
             create_graph(G, node.left, x=l_x, y=l_y, pos=pos, layer=l_layer, node_colors=node_colors, nil_id=nil_id)

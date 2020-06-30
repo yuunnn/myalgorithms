@@ -48,7 +48,7 @@ class BinaryTree:
 
     @staticmethod
     def pre_order_travel(node: Node, _res: List) -> None:
-        if node is None:
+        if node is None or node.value is None:
             return None
         _res.append(node.value)
         BinaryTree.pre_order_travel(node.left, _res)
@@ -56,7 +56,7 @@ class BinaryTree:
 
     @staticmethod
     def in_order_travel(node: Node, _res: List) -> None:
-        if node is None:
+        if node is None or node.value is None:
             return None
         BinaryTree.in_order_travel(node.left, _res)
         _res.append(node.value)
@@ -64,7 +64,7 @@ class BinaryTree:
 
     @staticmethod
     def post_order_travel(node: Node, _res: List) -> None:
-        if node is None:
+        if node is None or node.value is None:
             return None
         BinaryTree.post_order_travel(node.left, _res)
         BinaryTree.post_order_travel(node.right, _res)
@@ -206,7 +206,7 @@ class BinarySortTree(BinaryTree):
         node = self.search(value)
         return self.get_predecessor_node(node).value
 
-    def transplant(self, node_u: Node, node_v: Node) -> Node:
+    def transplant(self, node_u: Node, node_v: Node) -> None:
         if node_u.p is None:
             self.root = node_v
         elif node_u.p.left is not None and node_u.value == node_u.p.left.value:
@@ -216,7 +216,7 @@ class BinarySortTree(BinaryTree):
         if node_v is not None:
             node_v.p = node_u.p
 
-    def delete_node(self, node: Node) -> Node:
+    def delete_node(self, node: Node) -> None:
         if node.left is None:
             self.transplant(node, node.right)
         elif node.right is None:
@@ -231,7 +231,7 @@ class BinarySortTree(BinaryTree):
             current_node.left = node.left
             current_node.left.p = current_node
 
-    def delete_value(self, value: Union[int, float]) -> Node:
+    def delete_value(self, value: Union[int, float]) -> None:
         node = self.search(value)
         self.delete_node(node)
 
@@ -336,7 +336,7 @@ class AVLTree(BinarySortTree):
         if node.p is not None and self.balance_factor(node.p) != 0:
             self.update_balance(node.p)
 
-    def delete_node(self, node: Node) -> Node:
+    def delete_node(self, node: Node) -> None:
         if node.left is None:
             self.transplant(node, node.right)
             self.update_balance_remove(node.p)
@@ -386,12 +386,6 @@ class RBTree(BinarySortTree):
             return True
         return False
 
-    @staticmethod
-    def is_black(node: Node) -> bool:
-        if node is not None and node.color == -1:
-            return True
-        return False
-
     def update_color(self, node: Node) -> None:
         if self.is_red(node.left) and self.is_red(node.right):
             self.flip_color(node)
@@ -416,17 +410,10 @@ class RBTree(BinarySortTree):
         else:
             current_node.right = node
             node.p = current_node
-        # if self.is_red(current_node.right) and (not self.is_red(current_node.left)):
-        #     self.left_rotate(current_node)
-        # if current_node.left is not None and self.is_red(current_node.left) and self.is_red(current_node.left.left):
-        #     self.right_rotate(current_node)
-        # if self.is_red(current_node.right) and self.is_red(current_node.left):
-        #     self.flip_color(current_node)
         self.rebalance(current_node)
-        self.root.color = -1
         return
 
-    def rebalance(self, node):
+    def rebalance(self, node) -> None:
         if self.is_red(node.right) and (not self.is_red(node.left)):
             self.left_rotate(node)
             if self.is_red(node) and self.is_red(node.p):
@@ -437,7 +424,10 @@ class RBTree(BinarySortTree):
             self.right_rotate(node.p)
             self.update_color(node)
             self.root.color = -1
-        if node.value != self.root.value and node.p.value != self.root.value:
+        else:
+            self.update_color(node)
+        self.root.color = -1
+        if node.value != self.root.value:
             self.rebalance(node.p)
         return
 
@@ -462,7 +452,6 @@ class RBTree(BinarySortTree):
                     point.p.left = point
         if self.root.value == node.value:
             self.root = point
-            # self.root.color = -1
 
     def right_rotate(self, node: Node) -> None:
         point = node.left
@@ -485,4 +474,4 @@ class RBTree(BinarySortTree):
                     point.p.left = point
         if self.root.value == node.value:
             self.root = point
-            # self.root.color = -1
+
