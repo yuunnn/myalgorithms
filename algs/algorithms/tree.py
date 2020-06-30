@@ -23,8 +23,8 @@ class Node:
 
 class BinaryTree:
 
-    def __init__(self):
-        self.root = None
+    def __init__(self, root=None):
+        self.root = root
         self.nodelist = []
 
     def add(self, value: Union[int, float]) -> None:
@@ -118,8 +118,8 @@ class BinaryTree:
 
 
 class BinarySortTree(BinaryTree):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, root=None):
+        super().__init__(root=root)
 
     def add(self, value: Union[int, float]):
         node = Node(value)
@@ -369,10 +369,17 @@ class RBTree(BinarySortTree):
         super().__init__()
 
     @staticmethod
-    def is_nil(node: Node):
+    def is_nil(node: Node) -> bool:
         if node.value is None:
             return True
         return False
+
+    @staticmethod
+    def make_nil(node: Node) -> None:
+        node.value = None
+        node.left = None
+        node.right = None
+        node.color = -1
 
     @staticmethod
     def flip_color(node: Node) -> None:
@@ -412,6 +419,13 @@ class RBTree(BinarySortTree):
             node.p = current_node
         self.rebalance(current_node)
         return
+
+    def delete_value(self, value: Union[int, float]) -> None:
+        self.root = self.delete_node(self.root, value)
+        self.root.color = -1
+
+    def delete_node(self, node: Node) -> Node:
+        pass
 
     def rebalance(self, node) -> None:
         if self.is_red(node.right) and (not self.is_red(node.left)):
@@ -475,3 +489,83 @@ class RBTree(BinarySortTree):
         if self.root.value == node.value:
             self.root = point
 
+    def move_red_right(self, node: Node) -> bool:
+        self.flip_color(node)
+        if self.is_red(node.left.right):
+            self.left_rotate(node.left)
+            self.right_rotate(node)
+            self.flip_color(node.p)
+            return True
+        return False
+
+    def move_red_left(self, node: Node) -> bool:
+        self.flip_color(node)
+        if self.is_red(node.right.left):
+            self.right_rotate(node.right)
+            self.left_rotate(node)
+            self.flip_color(node.p)
+            return True
+        return False
+
+    def fix_up(self, node: Node) -> None:
+        if self.is_red(node.right):
+            self.left_rotate(node)
+            if self.is_red(node) and self.is_red(node.p):
+                self.right_rotate(node.p.p)
+            self.update_color(node.p)
+            self.root.color = -1
+        elif node.left is not None and self.is_red(node) and self.is_red(node.left):
+            self.right_rotate(node.p)
+            self.update_color(node)
+            self.root.color = -1
+        else:
+            self.update_color(node)
+
+    def delete_min_node(self, node):
+        if self.is_nil(node.left):
+            self.make_nil(node)
+            return
+        if not self.is_red(node.left) and not self.is_red(node.left.left):
+            is_move = self.move_red_left(node)
+            if is_move:
+                self.delete_min_node(node.p.left)
+                self.fix_up(node.p)
+            else:
+                self.delete_min_node(node.left)
+                self.fix_up(node)
+        else:
+            self.delete_min_node(node.left)
+            self.fix_up(node)
+
+    def delete_min(self) -> None:
+
+        self.delete_min_node(self.root)
+        self.root.color = -1
+
+    def delete_value(self, value) -> None:
+        def _del(node: Node, _value) -> None:
+            if _value < node.value:
+                if not self.is_red(node.left) and not self.is_red(node.left.left):
+                    is_move = self.move_red_left(node)
+                    if is_move:
+                        node = node.p
+                _del(node.left, _value)
+            else:
+                if self.is_red(node.left):
+                    self.right_rotate(node)  # ????????????????????
+                    node = node.p
+                if _value == node.value and self.is_nil(node.right):
+                    self.make_nil(node)
+                if not self.is_red(node.right) and not self.is_red(node.right.left):
+                    is_move = self.move_red_right(node)
+                    if is_move:
+                        node = node.p
+                if _value == node.value:
+                    _tree = BinarySortTree(root=node.right)
+                    node.value = _tree.minimum
+                    self.delete_min_node(node.right)
+                else:
+                    _del(node.right, _value)
+            self.fix_up(node)
+
+        _del(self.root, value)

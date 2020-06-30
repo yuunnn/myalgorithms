@@ -78,3 +78,4 @@ def draw_tree(node, title):
     nx.draw_networkx(graph, pos, node_size=300, node_color=node_colors)
     plt.title(title)
     plt.show()
+    return
