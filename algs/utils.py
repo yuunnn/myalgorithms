@@ -41,27 +41,37 @@ def sigmoid(x):
 
 
 def draw_tree(node, title):
-    # 该代码来源于https://zhuanlan.zhihu.com/p/35574577
     import networkx as nx
     import matplotlib.pyplot as plt
+    nil_id = [0]
 
-    def create_graph(G, node, pos={}, x=0, y=0, layer=1):
+    def create_graph(G, node, pos={}, x=0, y=0, layer=1, node_colors=[], nil_id=nil_id):
         pos[node.value] = (x, y)
+        if node.color == 1:
+            node_colors.append('r')
+        else:
+            node_colors.append('b')
         if node.left:
-            G.add_edge(node.value, node.left.value)
+            if node.left.value is None:
+                node.left.value = "nil" + str(nil_id[-1])
+                nil_id.append(nil_id[-1]+1)
+            G.add_edge(node.value or "nil", node.left.value)
             l_x, l_y = x - 1 / 2 ** layer, y - 1
             l_layer = layer + 1
-            create_graph(G, node.left, x=l_x, y=l_y, pos=pos, layer=l_layer)
+            create_graph(G, node.left, x=l_x, y=l_y, pos=pos, layer=l_layer, node_colors=node_colors, nil_id=nil_id)
         if node.right:
+            if node.right.value is None:
+                node.right.value = "nil" + str(nil_id[-1])
+                nil_id.append(nil_id[-1]+1)
             G.add_edge(node.value, node.right.value)
             r_x, r_y = x + 1 / 2 ** layer, y - 1
             r_layer = layer + 1
-            create_graph(G, node.right, x=r_x, y=r_y, pos=pos, layer=r_layer)
-        return G, pos
+            create_graph(G, node.right, x=r_x, y=r_y, pos=pos, layer=r_layer, node_colors=node_colors, nil_id=nil_id)
+        return G, pos, node_colors
 
     graph = nx.DiGraph()
-    graph, pos = create_graph(graph, node)
+    graph, pos, node_colors = create_graph(graph, node)
     plt.figure()
-    nx.draw_networkx(graph, pos, node_size=300)
+    nx.draw_networkx(graph, pos, node_size=300, node_color=node_colors)
     plt.title(title)
     plt.show()

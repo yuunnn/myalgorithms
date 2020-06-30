@@ -1,17 +1,24 @@
-from typing import List, Union
+from typing import List, Union, Optional
 
 
 class Node:
 
-    def __init__(self, value):
+    def __init__(self, value: Optional[Union[int, float]], color: Optional[int] = None):
+        """
+
+        :param value: node的值
+        :param color: node的颜色，用于红黑树中，1为红，-1为黑
+        """
         self.value = value
         self.left = None
         self.right = None
         self.p = None
-        self.balance_factor = 0
+        self.color = color
 
     def __repr__(self):
-        return "value:{}".format(self.value)
+        if self.color is None:
+            return "value:{}".format(self.value)
+        return "value:{},color:{}".format(self.value, self.color)
 
 
 class BinaryTree:
@@ -347,3 +354,131 @@ class AVLTree(BinarySortTree):
             current_node.left = node.left
             current_node.left.p = current_node
             self.update_balance_remove(tmp_node)
+
+
+class RBTree(BinarySortTree):
+    class RBTNode(Node):
+
+        def __init__(self, value: Optional[Union[int, float]], color: Optional[int] = None):
+            super().__init__(value, color)
+            # 左右节点都是nil
+            self.left = Node(value=None, color=-1)
+            self.right = Node(value=None, color=-1)
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def is_nil(node: Node):
+        if node.value is None:
+            return True
+        return False
+
+    @staticmethod
+    def flip_color(node: Node) -> None:
+        node.left.color *= -1
+        node.right.color *= -1
+        node.color *= -1
+
+    @staticmethod
+    def is_red(node: Node) -> bool:
+        if node is not None and node.color == 1:
+            return True
+        return False
+
+    @staticmethod
+    def is_black(node: Node) -> bool:
+        if node is not None and node.color == -1:
+            return True
+        return False
+
+    def update_color(self, node: Node) -> None:
+        if self.is_red(node.left) and self.is_red(node.right):
+            self.flip_color(node)
+
+    def add(self, value: Union[int, float]) -> None:
+        node = self.RBTNode(value, color=1)
+        if self.root is None:
+            self.root = node
+            self.root.color = -1
+            return
+        point = self.root
+        current_node = None
+        while not self.is_nil(point):
+            current_node = point
+            if value < point.value:
+                point = point.left
+            else:
+                point = point.right
+        if value < current_node.value:
+            current_node.left = node
+            node.p = current_node
+        else:
+            current_node.right = node
+            node.p = current_node
+        # if self.is_red(current_node.right) and (not self.is_red(current_node.left)):
+        #     self.left_rotate(current_node)
+        # if current_node.left is not None and self.is_red(current_node.left) and self.is_red(current_node.left.left):
+        #     self.right_rotate(current_node)
+        # if self.is_red(current_node.right) and self.is_red(current_node.left):
+        #     self.flip_color(current_node)
+        if self.is_red(current_node.right) and (not self.is_red(current_node.left)):
+            self.left_rotate(current_node)
+            if self.is_red(current_node) and self.is_red(current_node.p):
+                self.right_rotate(current_node.p.p)
+            self.update_color(current_node.p)
+            self.root.color = -1
+            return
+        if current_node.left is not None and self.is_red(current_node) and self.is_red(current_node.left):
+            self.right_rotate(current_node.p)
+            self.update_color(current_node)
+            # self.update_color(current_node.right)
+            # self.update_color(current_node.left)
+        self.root.color = -1
+        return
+
+    def left_rotate(self, node: Node) -> None:
+        point = node.right
+        if point.left is not None:
+            node.right = point.left
+            point.left.p = node
+        else:
+            node.right = Node(value=None, color=-1)
+        point.left = node
+        point.p = node.p
+        node.p = point
+        point.color = node.color
+        node.color = 1
+        if point.p is not None:
+            if point.p.right is not None:
+                if point.p.right.value == node.value:
+                    point.p.right = point
+            if point.p.left is not None:
+                if point.p.left.value == node.value:
+                    point.p.left = point
+        if self.root.value == node.value:
+            self.root = point
+            # self.root.color = -1
+
+    def right_rotate(self, node: Node) -> None:
+        point = node.left
+        if point.right is not None:
+            node.left = point.right
+            point.right.p = node
+        else:
+            node.left = Node(value=None, color=-1)
+        point.right = node
+        point.p = node.p
+        node.p = point
+        point.color = node.color
+        node.color = 1
+        if point.p is not None:
+            if point.p.right is not None:
+                if point.p.right.value == node.value:
+                    point.p.right = point
+            if point.p.left is not None:
+                if point.p.left.value == node.value:
+                    point.p.left = point
+        if self.root.value == node.value:
+            self.root = point
+            # self.root.color = -1
