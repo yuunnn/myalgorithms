@@ -422,19 +422,23 @@ class RBTree(BinarySortTree):
         #     self.right_rotate(current_node)
         # if self.is_red(current_node.right) and self.is_red(current_node.left):
         #     self.flip_color(current_node)
-        if self.is_red(current_node.right) and (not self.is_red(current_node.left)):
-            self.left_rotate(current_node)
-            if self.is_red(current_node) and self.is_red(current_node.p):
-                self.right_rotate(current_node.p.p)
-            self.update_color(current_node.p)
-            self.root.color = -1
-            return
-        if current_node.left is not None and self.is_red(current_node) and self.is_red(current_node.left):
-            self.right_rotate(current_node.p)
-            self.update_color(current_node)
-            # self.update_color(current_node.right)
-            # self.update_color(current_node.left)
+        self.rebalance(current_node)
         self.root.color = -1
+        return
+
+    def rebalance(self, node):
+        if self.is_red(node.right) and (not self.is_red(node.left)):
+            self.left_rotate(node)
+            if self.is_red(node) and self.is_red(node.p):
+                self.right_rotate(node.p.p)
+            self.update_color(node.p)
+            self.root.color = -1
+        elif node.left is not None and self.is_red(node) and self.is_red(node.left):
+            self.right_rotate(node.p)
+            self.update_color(node)
+            self.root.color = -1
+        if node.value != self.root.value and node.p.value != self.root.value:
+            self.rebalance(node.p)
         return
 
     def left_rotate(self, node: Node) -> None:
