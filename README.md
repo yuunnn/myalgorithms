@@ -14,3 +14,4 @@
 3 avl tree<br>
 4 rb tree (llrb)<br>
 5 fast pow<br>
+6 median (master-worker)<br>
