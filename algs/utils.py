@@ -41,14 +41,18 @@ def sigmoid(x):
 
 
 def draw_tree(node, title):
+    """
+    reference https://zhuanlan.zhihu.com/p/35574577
+    """
     import networkx as nx
     import matplotlib.pyplot as plt
     nil_id = [0]
 
     def create_graph(G, node, pos={}, x=0, y=0, layer=1, node_colors=[], nil_id=nil_id):
         pos[node.value] = (x, y)
-        if isinstance(node.value,str) and node.value.startswith("nil"):
+        if isinstance(node.value, str) and node.value.startswith("nil"):
             node_colors.append("black")
+            node.value = None
         else:
             if node.color == 1:
                 node_colors.append('r')
@@ -57,7 +61,7 @@ def draw_tree(node, title):
         if node.left:
             if node.left.value is None:
                 node.left.value = "nil" + str(nil_id[-1])
-                nil_id.append(nil_id[-1]+1)
+                nil_id.append(nil_id[-1] + 1)
             G.add_edge(node.value, node.left.value)
             l_x, l_y = x - 1 / 2 ** layer, y - 1
             l_layer = layer + 1
@@ -65,7 +69,7 @@ def draw_tree(node, title):
         if node.right:
             if node.right.value is None:
                 node.right.value = "nil" + str(nil_id[-1])
-                nil_id.append(nil_id[-1]+1)
+                nil_id.append(nil_id[-1] + 1)
             G.add_edge(node.value, node.right.value)
             r_x, r_y = x + 1 / 2 ** layer, y - 1
             r_layer = layer + 1

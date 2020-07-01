@@ -154,7 +154,7 @@ class BinarySortTree(BinaryTree):
 
     @staticmethod
     def get_minimum_node(node: Node) -> Node:
-        while node.left is not None:
+        while node.left is not None and node.left.value is not None:
             node = node.left
         return node
 
@@ -165,7 +165,7 @@ class BinarySortTree(BinaryTree):
 
     @staticmethod
     def get_maximum_node(node: Node) -> Node:
-        while node.right is not None:
+        while node.right is not None and node.left.right is not None:
             node = node.right
         return node
 
@@ -357,6 +357,14 @@ class AVLTree(BinarySortTree):
 
 
 class RBTree(BinarySortTree):
+    """
+    Left-leaning red black tree，左倾红黑树，和红黑树的区别是，LLRBT是2-3树，红黑树是2-3-4树，LLRBT的大幅减少了普通RBT的代码量。
+
+    reference: https://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf
+
+    由于LLRBTree论文上的实现是没有父指针的，这里为了和BST和AVL的代码风格保持一致，加入了父指针，并修改了一些逻辑。
+    主要区别是原作者的实现是自上而下递归构建一颗新树（删除节点），而这里是自上至下递归修改原树。
+    """
     class RBTNode(Node):
 
         def __init__(self, value: Optional[Union[int, float]], color: Optional[int] = None):
@@ -370,7 +378,7 @@ class RBTree(BinarySortTree):
 
     @staticmethod
     def is_nil(node: Node) -> bool:
-        if node.value is None:
+        if node and node.value is None:
             return True
         return False
 
@@ -420,26 +428,8 @@ class RBTree(BinarySortTree):
         self.rebalance(current_node)
         return
 
-    def delete_value(self, value: Union[int, float]) -> None:
-        self.root = self.delete_node(self.root, value)
-        self.root.color = -1
-
-    def delete_node(self, node: Node) -> Node:
-        pass
-
     def rebalance(self, node) -> None:
-        if self.is_red(node.right) and (not self.is_red(node.left)):
-            self.left_rotate(node)
-            if self.is_red(node) and self.is_red(node.p):
-                self.right_rotate(node.p.p)
-            self.update_color(node.p)
-            self.root.color = -1
-        elif node.left is not None and self.is_red(node) and self.is_red(node.left):
-            self.right_rotate(node.p)
-            self.update_color(node)
-            self.root.color = -1
-        else:
-            self.update_color(node)
+        self.fix_up(node)
         self.root.color = -1
         if node.value != self.root.value:
             self.rebalance(node.p)
@@ -491,8 +481,7 @@ class RBTree(BinarySortTree):
 
     def move_red_right(self, node: Node) -> bool:
         self.flip_color(node)
-        if self.is_red(node.left.right):
-            self.left_rotate(node.left)
+        if self.is_red(node.left.left):
             self.right_rotate(node)
             self.flip_color(node.p)
             return True
@@ -510,16 +499,12 @@ class RBTree(BinarySortTree):
     def fix_up(self, node: Node) -> None:
         if self.is_red(node.right):
             self.left_rotate(node)
-            if self.is_red(node) and self.is_red(node.p):
-                self.right_rotate(node.p.p)
-            self.update_color(node.p)
-            self.root.color = -1
-        elif node.left is not None and self.is_red(node) and self.is_red(node.left):
-            self.right_rotate(node.p)
-            self.update_color(node)
-            self.root.color = -1
-        else:
-            self.update_color(node)
+            node = node.p
+        if self.is_red(node.left) and self.is_red(node.left.left):
+            self.right_rotate(node)
+            node = node.p
+        if self.is_red(node.left) and self.is_red(node.right):
+            self.flip_color(node)
 
     def delete_min_node(self, node):
         if self.is_nil(node.left):
@@ -528,14 +513,9 @@ class RBTree(BinarySortTree):
         if not self.is_red(node.left) and not self.is_red(node.left.left):
             is_move = self.move_red_left(node)
             if is_move:
-                self.delete_min_node(node.p.left)
-                self.fix_up(node.p)
-            else:
-                self.delete_min_node(node.left)
-                self.fix_up(node)
-        else:
-            self.delete_min_node(node.left)
-            self.fix_up(node)
+                node = node.p
+        self.delete_min_node(node.left)
+        self.fix_up(node)
 
     def delete_min(self) -> None:
 
@@ -552,17 +532,17 @@ class RBTree(BinarySortTree):
                 _del(node.left, _value)
             else:
                 if self.is_red(node.left):
-                    self.right_rotate(node)  # ????????????????????
+                    self.right_rotate(node)
                     node = node.p
                 if _value == node.value and self.is_nil(node.right):
                     self.make_nil(node)
-                if not self.is_red(node.right) and not self.is_red(node.right.left):
+                    return
+                if not self.is_red(node.right) and node.right and not self.is_red(node.right.left):
                     is_move = self.move_red_right(node)
                     if is_move:
                         node = node.p
                 if _value == node.value:
-                    _tree = BinarySortTree(root=node.right)
-                    node.value = _tree.minimum
+                    node.value = self.get_minimum_node(node.right).value
                     self.delete_min_node(node.right)
                 else:
                     _del(node.right, _value)
