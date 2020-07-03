@@ -37,6 +37,10 @@ class Master:
         for i in range(self.workers_number):
             self.single_confirm_queue[i].get()
 
+    def close(self):
+        for i in range(self.workers_number):
+            self.single_queue[i].put({"type": "close"})
+
     def first_count(self, lst, number):
         for i in range(self.workers_number):
             if i == self.workers_number - 1:
@@ -121,6 +125,7 @@ class Master:
         for i in range(self.workers_number):
             tmp = self.common_queue.get()
             res += tmp
+        self.close()
 
         res = sorted(res)
         if target.is_integer():

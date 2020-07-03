@@ -4,10 +4,10 @@ import time
 from algs.algorithms.median import median
 
 
-print("用多进程模拟分布式计算500万个数的中位数,worker数量=2")
-lst = random.sample(range(50000000), 5000000)
+print("用多进程模拟分布式计算1000万个数的中位数,worker数量=2")
+lst = random.sample(range(50000000), 10000000)
 a = time.time()
-res = median(lst, workers_number=2, map_volume=2500000)
+res = median(lst, workers_number=2, map_volume=5000000)
 b = time.time()
 res2 = np.median(lst)
 c = time.time()
