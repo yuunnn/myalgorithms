@@ -7,8 +7,12 @@
 5 hmm<br>
 6 gbdt regression<br>
 7 gbdt classifier<br>
+8 fm <br>
 
-## algorithms
+## matrix_algorithms
+1 qr factorization<br>
+
+## data_structure_algorithms
 1 binary tree<br>
 2 binary sort tree<br>
 3 avl tree<br>
