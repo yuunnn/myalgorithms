@@ -1,5 +1,5 @@
 import numpy as np
-from algs.algorithms.qr_factorization import qr_factorization
+from algs.matrix_algorithms.qr_factorization import qr_factorization
 
 a = np.random.random([4, 4])
 q, r = qr_factorization(a)

@@ -1,4 +1,4 @@
-from algs.algorithms.tree import BinaryTree, Node
+from algs.data_structure_algorithms.tree import BinaryTree, Node
 import numpy as np
 
 

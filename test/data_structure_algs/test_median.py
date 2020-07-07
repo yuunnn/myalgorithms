@@ -1,7 +1,7 @@
 import random
 import numpy as np
 import time
-from algs.algorithms.median import median
+from algs.data_structure_algorithms.median import median
 
 
 print("用多进程模拟分布式计算1000万个数的中位数,worker数量=2")

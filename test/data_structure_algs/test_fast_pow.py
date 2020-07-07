@@ -1,5 +1,5 @@
 import time
-from algs.algorithms.fast_pow import fast_pow, matrix_fast_pow
+from algs.data_structure_algorithms.fast_pow import fast_pow, matrix_fast_pow
 
 
 A = time.time()

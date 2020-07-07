@@ -1,4 +1,4 @@
-from algs.algorithms.tree import BinarySortTree
+from algs.data_structure_algorithms.tree import BinarySortTree
 from algs.utils import draw_tree
 import random
 

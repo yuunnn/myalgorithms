@@ -549,3 +549,4 @@ class RBTree(BinarySortTree):
             self.fix_up(node)
 
         _del(self.root, value)
+        self.root.color = -1
