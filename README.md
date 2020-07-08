@@ -11,6 +11,7 @@
 
 ## matrix_algorithms
 1 qr factorization<br>
+2 svd <br>
 
 ## data_structure_algorithms
 1 binary tree<br>
