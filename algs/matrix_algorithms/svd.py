@@ -30,7 +30,7 @@ def is_diag(a: np.ndarray) -> bool:
     M, N = a.shape
     for m in range(M):
         for n in range(N):
-            if m != n and a[m][n] > 0.001:
+            if m != n and a[m][n] > 0.00001:
                 return False
     return True
 
@@ -41,7 +41,7 @@ def solve(a: np.ndarray) -> np.ndarray:
     # http://homepage.divms.uiowa.edu/~atkinson/m171.dir/sec_9-7.pdf
     x = np.random.random(len(a))
     inv_a = np.linalg.inv(a)
-    for i in range(10):
+    for i in range(3):
         x = np.matmul(inv_a, x)
     return x / np.sum(x ** 2) ** 0.5
 
