@@ -21,3 +21,6 @@
 5 fast pow<br>
 6 median (master-worker)<br>
 7 sort<br>
+
+## nn_algorithms
+1 Automatic differentiation<br>
