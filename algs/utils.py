@@ -21,7 +21,7 @@ def compute_mae(y1, y2):
 def compute_logloss(ypred, ytrue):
     if len(ypred) != len(ytrue):
         raise ValueError("y1.length != y2.length")
-    return -np.mean([np.log(ypred[i][ytrue[i]]) for i in range(len(ypred))])
+    return -np.mean([ytrue[i] * np.log(ypred[i]) + (1-ytrue[i])*np.log(1-ypred[i]) for i in range(len(ypred))])
 
 
 def compute_confusion_matrix(ypred, yture):
