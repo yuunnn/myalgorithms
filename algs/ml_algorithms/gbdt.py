@@ -73,8 +73,8 @@ class GbdtClassifier:
                 raise ValueError("loss should be deviance")
 
     def predict_proba(self, x: np.ndarray) -> np.ndarray:
-        return self._trees[0] + \
-               np.sum([self._trees[i].predict(x) * self.learning_rate for i in range(1, len(self._trees))], axis=0)
+        return sigmoid(self._trees[0] + np.sum(
+            [self._trees[i].predict(x) * self.learning_rate for i in range(1, len(self._trees))], axis=0))
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         _proba = self.predict_proba(x)
