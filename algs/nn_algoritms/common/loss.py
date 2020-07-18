@@ -3,20 +3,20 @@ from abc import ABC
 
 
 class Loss(ABC):
-    def loss(self, y_ture, y_pred):
+    def loss(self, y_true, y_pre):
         raise NotImplementedError
 
-    def grad(self, y_ture, y_pred):
+    def grad(self, y_true, y_pre):
         raise NotImplementedError
 
 
 class Mse(Loss):
 
     def loss(self, y_true, y_pre):
-        return np.sum((y_true - y_pre) ** 2)
+        return np.mean((y_true - y_pre.reshape(-1)) ** 2)
 
     def grad(self, y_true, y_pre):
-        return (y_pre - y_true).reshape(-1, 1)
+        return np.mean(y_pre.reshape(-1) - y_true).reshape(-1, 1)
 
 
 class Crossentropy(Loss):
@@ -30,12 +30,13 @@ class Crossentropy(Loss):
         if self.y_true_one_hot is None:
             classes = len(set(y_true))
             self.y_true_one_hot = np.array(
-                [[1 if _class == m else 0 for _class in range(classes)] for m in y_true])[:,:,np.newaxis]
+                [[1 if _class == m else 0 for _class in range(classes)] for m in y_true])[:, :, np.newaxis]
 
         return np.sum(-np.log(y_pre) * self.y_true_one_hot) / m
 
     def grad(self, y_true, y_pre):
         return np.mean(-self.y_true_one_hot / y_pre, axis=0).reshape(-1, 1)
+        # return np.mean(y_pre - self.y_true_one_hot, axis=0)
 
 
-LOSS_MAP = {'Crossentropy': Crossentropy}
+LOSS_MAP = {'Crossentropy': Crossentropy, "Mse": Mse}

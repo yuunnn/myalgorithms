@@ -30,7 +30,11 @@ class Model:
         return
 
     def step(self):
+        # a = np.sum(self.layer[0].w)
         self.optimizer.compute(self)
+        # b = np.sum(self.layer[0].w)
+        # print(b-a)
+        # print(self.layer[0].dw[0])
 
     def fit(self, x, y):
         for _iter in range(self.max_iter):
