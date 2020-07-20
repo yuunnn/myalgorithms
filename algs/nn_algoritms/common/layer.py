@@ -39,6 +39,20 @@ class Sigmoid(Activation):
         return self.g * (1 - self.g)
 
 
+class Tanh(Activation):
+    def __init__(self):
+        super().__init__()
+        self.g = None
+
+    def forward(self, x_input):
+        self._input = x_input
+        self.g = np.tanh(x_input)
+        return self.g
+
+    def backward(self):
+        return 1 - self.g ** 2
+
+
 class Linear(Activation):
     def __init__(self):
         super().__init__()
@@ -51,63 +65,28 @@ class Linear(Activation):
         return np.ones(self._input)
 
 
-# class Softmax(Activation):
-#     def __init__(self):
-#         super().__init__()
-#         self._input = None
-#
-#     def forward(self, x_input):
-#         exps = np.exp(x_input)
-#         self._input = x_input
-#         return exps / np.sum(exps, axis=1).reshape(-1, 1, 1)
-#
-#     def backward(self):
-#         sumexps = np.sum(np.exp(self._input), axis=1).reshape(-1, 1, 1)
-#         exps2x = np.exp(self._input * 2)
-#         return np.mean((np.exp(self._input) * sumexps - exps2x) / (sumexps ** 2), axis=0)
-#
-#
-# class Softmax(Activation):
-#     def __init__(self):
-#         super().__init__()
-#         self._input = None
-#         self.g = None
-#
-#     def forward(self, x_input):
-#         exps = np.exp(x_input)
-#         self._input = x_input
-#         self.g = exps / np.sum(exps, axis=1).reshape(-1, 1, 1)
-#         return self.g
-#
-#     def backward(self):
-#         return np.mean(self.g * (1 - self.g), axis=0)
+class Softmax(Activation):
+    def __init__(self):
+        super().__init__()
+        self._input = None
+        self.g = None
 
-#
-# class Softmax(Activation):
-#     def __init__(self):
-#         super().__init__()
-#         self._input = None
-#         self.g = None
-#
-#     def forward(self, x_input):
-#         exps = np.exp(x_input)
-#         self._input = x_input
-#         self.g = exps / np.sum(exps, axis=1).reshape(-1, 1, 1)
-#         return self.g
-#
-#     def backward(self):
-#         res = []
-#         for _matrix in self.g:
-#             res.append(_matrix - sum(set((_matrix * _matrix.T).flat) - set(np.diag(_matrix * _matrix.T))))
-#         res = np.array(res)
-#         return np.mean(res, axis=0)
-#
+    def forward(self, x_input):
+        exps = np.exp(x_input)
+        self._input = x_input
+        self.g = exps / np.sum(exps, axis=1, keepdims=True)
+        return self.g
+
+    def backward(self):
+        # softmax暂时只能和Crossentropy_with_softmax一起用，并且不能作为普通的激活函数使用
+        return 1
+
 
 class Layer(ABC):
-    ACTIVATION_MAP = {'relu': Relu, 'sigmoid': Sigmoid, 'linear': Linear}
+    ACTIVATION_MAP = {'relu': Relu, 'sigmoid': Sigmoid, 'linear': Linear, 'softmax': Softmax, 'tanh': Tanh}
 
     def __init__(self, activation, units):
-        self.activation = activation()
+        self.activation = self.ACTIVATION_MAP[activation]()
         self.b = np.zeros(units).reshape(-1)
         self.units = units
         self.w = None
@@ -127,7 +106,7 @@ class Layer(ABC):
 
 class Dense(Layer):
     def __init__(self, activation, units):
-        super().__init__(activation=Layer.ACTIVATION_MAP[activation], units=units)
+        super().__init__(activation=activation, units=units)
 
     def forward(self, x_input):
         self._input = x_input
@@ -143,6 +122,7 @@ class Dense(Layer):
             self.dz = grad * dg
         else:
             self.dz = grad @ w * dg
+        self.dw = []
         self.dw = self.dz.T @ self._input / self.m
         self.db = np.mean(self.dz, axis=0)
         return self.w, self.dz

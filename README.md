@@ -1,4 +1,13 @@
 # algs
+
+## nn_algorithms
+1 Automatic differentiation<br>
+2 my nn framework(<br>
+&emsp;&emsp;&emsp;&emsp;layer: Dense<br>
+&emsp;&emsp;&emsp;&emsp;activation: linear sigmoid tanh softmax<br>
+&emsp;&emsp;&emsp;&emsp;loss: mse Crossentropy_with_softmax<br>
+&emsp;&emsp;&emsp;&emsp;optimizer: sgd<br>)
+
 ## ml_algorithms
 1 cart regression<br>
 2 cart classifier<br>
@@ -21,7 +30,3 @@
 5 fast pow<br>
 6 median (master-worker)<br>
 7 sort<br>
-
-## nn_algorithms
-1 Automatic differentiation<br>
-2 my nn framework

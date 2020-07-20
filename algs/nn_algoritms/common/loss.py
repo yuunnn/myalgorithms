@@ -19,7 +19,7 @@ class Mse(Loss):
         return (y_pre.reshape(-1) - y_true).reshape(-1, 1)
 
 
-class Crossentropy(Loss):
+class Crossentropy_with_softmax(Loss):
     """y_true should be in (0.1.2...n)"""
 
     def __init__(self):
@@ -30,13 +30,12 @@ class Crossentropy(Loss):
         if self.y_true_one_hot is None:
             classes = len(set(y_true))
             self.y_true_one_hot = np.array(
-                [[1 if _class == m else 0 for _class in range(classes)] for m in y_true])[:, :, np.newaxis]
+                [[1 if _class == m else 0 for _class in range(classes)] for m in y_true])
 
         return np.sum(-np.log(y_pre) * self.y_true_one_hot) / m
 
     def grad(self, y_true, y_pre):
-        return np.mean(-self.y_true_one_hot / y_pre, axis=0).reshape(-1, 1)
-        # return np.mean(y_pre - self.y_true_one_hot, axis=0)
+        return y_pre - self.y_true_one_hot
 
 
-LOSS_MAP = {'Crossentropy': Crossentropy, "Mse": Mse}
+LOSS_MAP = {'Crossentropy_with_softmax': Crossentropy_with_softmax, "Mse": Mse}
