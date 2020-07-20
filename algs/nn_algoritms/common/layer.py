@@ -25,6 +25,22 @@ class Relu(Activation):
         return (self._input > 0) * 1
 
 
+class LeakyRelu(Activation):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x_input):
+        self._input = x_input
+        right = np.maximum(x_input, 0)
+        left = np.min(x_input * 0.001, 0)
+        return right + left
+
+    def backward(self):
+        right = (self._input >= 0) * 1
+        left = (self._input < 0) * 1 * 0.001
+        return right + left
+
+
 class Sigmoid(Activation):
     def __init__(self):
         super().__init__()
@@ -83,7 +99,8 @@ class Softmax(Activation):
 
 
 class Layer(ABC):
-    ACTIVATION_MAP = {'relu': Relu, 'sigmoid': Sigmoid, 'linear': Linear, 'softmax': Softmax, 'tanh': Tanh}
+    ACTIVATION_MAP = {'relu': Relu, 'sigmoid': Sigmoid, 'linear': Linear, 'softmax': Softmax, 'tanh': Tanh,
+                      'leakyrelu': LeakyRelu}
 
     def __init__(self, activation, units):
         self.activation = self.ACTIVATION_MAP[activation]()
