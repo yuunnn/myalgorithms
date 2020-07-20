@@ -16,7 +16,7 @@ class Mse(Loss):
         return np.mean((y_true - y_pre.reshape(-1)) ** 2)
 
     def grad(self, y_true, y_pre):
-        return np.mean(y_pre.reshape(-1) - y_true).reshape(-1, 1)
+        return (y_pre.reshape(-1) - y_true).reshape(-1, 1)
 
 
 class Crossentropy(Loss):
