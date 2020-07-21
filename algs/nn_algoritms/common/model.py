@@ -19,10 +19,9 @@ class Model:
         pass
 
     def forward(self, x):
-        tmp = x[:]
         for _layer in self.layer:
-            tmp = _layer.forward(tmp)
-        return tmp
+            x = _layer.forward(x)
+        return x
 
     def backward(self, grad):
         w = -1
@@ -33,12 +32,13 @@ class Model:
     def step(self):
         self.optimizer.compute(self)
 
-    def fit(self, x, y,watch_loss=False):
+    def fit(self, x, y, watch_loss=False):
+        _x = x[:]
         for _iter in range(self.max_iter):
-            res = self.forward(x)
+            res = self.forward(_x)
             loss = self.loss.loss(y, res)
             if watch_loss:
-                print("iter {}:    {}".format(_iter,loss))
+                print("iter {}:    {}".format(_iter, loss))
             self.history['loss'].append(loss)
             grad = self.loss.grad(y, res)
             self.backward(grad)

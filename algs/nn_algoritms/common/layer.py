@@ -143,17 +143,18 @@ class Dense(Layer):
 
 
 class SimpleRNN(Layer):
-    def __init__(self, hidden_activation, output_activation, max_length, hiddenDimension, outputsDimension):
+    def __init__(self, hidden_activation, output_activation, max_length, features, hiddenDimension, outputsDimension):
         self.hidden_activation = hidden_activation
         self.output_activation = output_activation
         self.hidden_activations = None
         self.output_activations = None
         self.hiddenDimension = hiddenDimension
         self.outputsDimension = outputsDimension
-        self.wa = np.random.normal(size=[hiddenDimension + max_length, hiddenDimension]) * 0.01
-        self.dwa = np.zeros([hiddenDimension + max_length, hiddenDimension])
+        self.wa = np.random.normal(size=[hiddenDimension + features, hiddenDimension]) * 0.01
+        self.dwa = np.zeros([hiddenDimension + features, hiddenDimension])
         self.wy = np.random.normal(size=[hiddenDimension, outputsDimension]) * 0.01
         self.dwy = np.zeros([hiddenDimension, outputsDimension])
+        self.features = features
         self.max_length = max_length
         self.ba = np.zeros(hiddenDimension)
         self.dba = np.zeros(hiddenDimension)
@@ -166,18 +167,20 @@ class SimpleRNN(Layer):
         self.zy = []
 
     def padding(self, x_input):
-        res = np.zeros([x_input.shape[0], x_input.shape[1], self.max_length])
-        for i in range(x_input.shape[0]):
-            for j in range(x_input.shape[1]):
-                length = min(len(x_input[i][j]), self.max_length)
-                res[i][j][:length] = x_input[i][j][:length]
+        res = np.zeros([len(x_input), self.max_length, len(x_input[0][0])])
+        for i in range(len(x_input)):
+            if len(x_input[i]) < self.max_length:
+                res[i] += np.concatenate([
+                    np.array(x_input[i]), np.zeros([self.max_length - len(x_input[i]), len(x_input[0][0])])], axis=0)
+            else:
+                res[i] += x_input[i][:self.max_length]
         return res
 
     def forward(self, x_input: np.ndarray):
-        self.shape = x_input.shape
-        self._input = x_input
         if self.hidden_activations is None:
             x_input = self.padding(x_input)
+            self.shape = x_input.shape
+            self._input = x_input
             self.hidden_activations = [super().ACTIVATION_MAP[self.hidden_activation]()] * self.shape[1]
             self.output_activations = [super().ACTIVATION_MAP[self.output_activation]()] * self.shape[1]
         self.hidden_vectors = []

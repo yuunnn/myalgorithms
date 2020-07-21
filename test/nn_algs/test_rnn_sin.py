@@ -15,10 +15,11 @@ for i in range(1000):
 x = np.array(x).reshape(1000, 50, 1)
 y = np.array(y).reshape(1000, 50, 1)
 
-model = Model(lr=0.02, max_iter=500, loss="mse2d")
+model = Model(lr=0.01, max_iter=1000, loss="mse2d")
 model.add(SimpleRNN(hidden_activation='tanh',
                     output_activation='linear',
-                    max_length=1,
+                    max_length=50,
+                    features=1,
                     hiddenDimension=10,
                     outputsDimension=1))
 model.fit(x, y, watch_loss=True)
