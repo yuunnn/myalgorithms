@@ -21,7 +21,7 @@ model.add(SimpleRNN(hidden_activation='tanh',
                     max_length=1,
                     hiddenDimension=200,
                     outputsDimension=1))
-model.fit(x, y, watch_loss=)
+model.fit(x, y, watch_loss=False)
 
 import matplotlib.pyplot as plt
 plt.plot(model.history['loss'])
