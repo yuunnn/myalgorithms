@@ -102,18 +102,6 @@ class Layer(ABC):
     ACTIVATION_MAP = {'relu': Relu, 'sigmoid': Sigmoid, 'linear': Linear, 'softmax': Softmax, 'tanh': Tanh,
                       'leakyrelu': LeakyRelu}
 
-    def __init__(self, activation, units):
-        self.activation = self.ACTIVATION_MAP[activation]()
-        self.b = np.zeros(units).reshape(-1)
-        self.units = units
-        self.w = None
-        self.m = None
-        self.grad = None
-        self._input = None
-        self.dz = None
-        self.dw = None
-        self.db = None
-
     def forward(self, x_input):
         raise NotImplementedError
 
@@ -123,7 +111,16 @@ class Layer(ABC):
 
 class Dense(Layer):
     def __init__(self, activation, units):
-        super().__init__(activation=activation, units=units)
+        self.activation = super().ACTIVATION_MAP[activation]()
+        self.b = np.zeros(units).reshape(-1)
+        self.units = units
+        self.w = None
+        self.m = None
+        self.grad = None
+        self._input = None
+        self.dz = None
+        self.dw = None
+        self.db = None
 
     def forward(self, x_input):
         self._input = x_input
@@ -143,3 +140,95 @@ class Dense(Layer):
         self.dw = self.dz.T @ self._input / self.m
         self.db = np.mean(self.dz, axis=0)
         return self.w, self.dz
+
+
+class SimpleRNN(Layer):
+    def __init__(self, hidden_activation, output_activation, max_length, hiddenDimension, outputsDimension):
+        self.hidden_activation = hidden_activation
+        self.output_activation = output_activation
+        self.hidden_activations = None
+        self.output_activations = None
+        self.hiddenDimension = hiddenDimension
+        self.outputsDimension = outputsDimension
+        self.wa = np.random.normal(size=[hiddenDimension + max_length, hiddenDimension]) * 0.01
+        self.dwa = np.zeros([hiddenDimension + max_length, hiddenDimension])
+        self.wy = np.random.normal(size=[hiddenDimension, outputsDimension]) * 0.01
+        self.dwy = np.zeros([hiddenDimension, outputsDimension])
+        self.max_length = max_length
+        self.ba = np.zeros(hiddenDimension)
+        self.dba = np.zeros(hiddenDimension)
+        self.by = np.zeros(outputsDimension)
+        self.dby = np.zeros(hiddenDimension)
+        self.hidden_vectors = []
+        self.output_vectors = []
+        self.shape = None
+        self._input = None
+        self.zy = []
+
+    def padding(self, x_input):
+        res = np.zeros([x_input.shape[0], x_input.shape[1], self.max_length])
+        for i in range(x_input.shape[0]):
+            for j in range(x_input.shape[1]):
+                length = min(len(x_input[i][j]), self.max_length)
+                res[i][j][:length] = x_input[i][j][:length]
+        return res
+
+    def forward(self, x_input: np.ndarray):
+        self.shape = x_input.shape
+        self._input = x_input
+        if self.hidden_activations is None:
+            x_input = self.padding(x_input)
+            self.hidden_activations = [super().ACTIVATION_MAP[self.hidden_activation]()] * self.shape[1]
+            self.output_activations = [super().ACTIVATION_MAP[self.output_activation]()] * self.shape[1]
+        self.hidden_vectors = []
+        self.output_vectors = []
+        self.zy = []
+        alpha = np.zeros([self.shape[0], self.hiddenDimension])
+        self.hidden_vectors.append(alpha)
+        for i in range(self.shape[1]):
+            x_concat = np.concatenate([alpha, x_input[:, i, :].reshape(self.shape[0], self.shape[2])], axis=1)
+            za = x_concat @ self.wa + self.ba
+            alpha = self.hidden_activations[i].forward(za)
+            self.hidden_vectors.append(alpha)
+            zy = alpha @ self.wy + self.by
+            self.zy.append(zy)
+            yt = self.output_activations[i].forward(zy)
+            self.output_vectors.append(yt)
+
+        return np.array(self.output_vectors).transpose([1, 0, 2])
+
+    def backward(self, grad, w=-1):
+        if isinstance(w, int) and w == -1:
+            grad = grad
+        else:
+            grad = grad @ w
+
+        dwy = np.zeros(self.wy.shape)
+        dby = np.zeros(self.by.shape)
+        dwa = np.zeros(self.wa.shape)
+        dba = np.zeros(self.ba.shape)
+
+        grad_a_next = 1
+        for i in reversed(range(self.shape[1])):
+            _grad = grad[:, i, :].reshape(grad.shape[0], grad.shape[2])
+            # 首先更新输出层的w和b，这个和普通全连接层一样
+            dzy = _grad * self.output_activations[i].backward()
+            dwy += self.hidden_vectors[i].T @ dzy / self.shape[0]
+            dby += np.mean(dzy, axis=0)
+
+            # 然后更新dza
+            dza = self.hidden_activations[i].backward() * (grad_a_next + dzy @ self.wy.T)
+
+            dwa += np.concatenate(
+                [self.hidden_vectors[i - 1], self._input[:, i, :].reshape(self.shape[0], self.shape[2])],
+                axis=1).T @ dza
+            dba += np.mean(dzy, axis=0)
+
+            grad_a_next = dza
+        self.dwy = dwy / self.shape[0]
+        self.dby = dby / self.shape[0]
+        self.dwa = dwa / self.shape[0]
+        self.dba = dba / self.shape[0]
+
+        # 暂时未实现rnn前接rnn的反向传播
+        return -1, -1

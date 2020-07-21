@@ -19,6 +19,15 @@ class Mse(Loss):
         return (y_pre.reshape(-1) - y_true).reshape(-1, 1)
 
 
+class Mse2d(Loss):
+
+    def loss(self, y_true, y_pre):
+        return np.mean((y_true.reshape(-1) - y_pre.reshape(-1)) ** 2)
+
+    def grad(self, y_true, y_pre):
+        return y_pre - y_true
+
+
 class Crossentropy_with_softmax(Loss):
     """y_true should be in (0.1.2...n)"""
 
@@ -38,4 +47,4 @@ class Crossentropy_with_softmax(Loss):
         return y_pre - self.y_true_one_hot
 
 
-LOSS_MAP = {'Crossentropy_with_softmax': Crossentropy_with_softmax, "Mse": Mse}
+LOSS_MAP = {'Crossentropy_with_softmax': Crossentropy_with_softmax, "Mse": Mse, "mse2d": Mse2d}

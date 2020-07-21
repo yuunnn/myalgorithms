@@ -27,16 +27,18 @@ class Model:
     def backward(self, grad):
         w = -1
         for _layer in reversed(self.layer):
-            w, grad = _layer.backward(w, grad)
+            w, grad = _layer.backward(w=w, grad=grad)
         return
 
     def step(self):
         self.optimizer.compute(self)
 
-    def fit(self, x, y):
+    def fit(self, x, y,watch_loss=False):
         for _iter in range(self.max_iter):
             res = self.forward(x)
             loss = self.loss.loss(y, res)
+            if watch_loss:
+                print("iter {}:    {}".format(_iter,loss))
             self.history['loss'].append(loss)
             grad = self.loss.grad(y, res)
             self.backward(grad)

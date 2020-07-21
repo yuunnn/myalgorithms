@@ -1,5 +1,5 @@
 from abc import ABC
-import numpy as np
+from .layer import *
 
 
 class Optimizer(ABC):
@@ -16,8 +16,16 @@ class Sgd(Optimizer):
 
     def compute(self, model):
         for layer in model.layer:
-            layer.w -= self.lr * layer.dw
-            layer.b -= self.lr * layer.db
+            if isinstance(layer, SimpleRNN):
+                layer.wy -= self.lr * layer.dwy
+                layer.by -= self.lr * layer.dby
+                layer.wa -= self.lr * layer.dwa
+                layer.ba -= self.lr * layer.dba
+            elif isinstance(layer, Dense):
+                layer.w -= self.lr * layer.dw
+                layer.b -= self.lr * layer.db
+            else:
+                raise NotImplementedError
 
 
 OPTIMIZER_MAP = {'sgd': Sgd}
