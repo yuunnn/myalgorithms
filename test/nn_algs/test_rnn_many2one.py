@@ -1,3 +1,6 @@
+"""
+many to one mode for "test_rnn_sin"
+"""
 from algs.nn_algoritms.common.model import Model
 from algs.nn_algoritms.common.layer import Dense, SimpleRNN, Flatten
 
