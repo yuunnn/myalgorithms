@@ -211,13 +211,13 @@ class SimpleRNN(Layer):
         dwa = np.zeros(self.wa.shape)
         dba = np.zeros(self.ba.shape)
 
-        grad_a_next = 1
+        grad_a_next = 0
         for i in reversed(range(self.shape[1])):
             _grad = grad[:, i, :].reshape(grad.shape[0], grad.shape[2])
             # 首先更新输出层的w和b，这个和普通全连接层一样
             dzy = _grad * self.output_activations[i].backward()
-            dwy += self.hidden_vectors[i].T @ dzy / self.shape[0]
-            dby += np.mean(dzy, axis=0)
+            dwy += self.hidden_vectors[i].T @ dzy
+            dby += np.sum(dzy)
 
             # 然后更新dza
             dza = self.hidden_activations[i].backward() * (grad_a_next + dzy @ self.wy.T)
@@ -225,13 +225,14 @@ class SimpleRNN(Layer):
             dwa += np.concatenate(
                 [self.hidden_vectors[i - 1], self._input[:, i, :].reshape(self.shape[0], self.shape[2])],
                 axis=1).T @ dza
-            dba += np.mean(dzy, axis=0)
+            dba += np.sum(dzy)
 
-            grad_a_next = dza
-        self.dwy = dwy / self.shape[0]
-        self.dby = dby / self.shape[0]
-        self.dwa = dwa / self.shape[0]
-        self.dba = dba / self.shape[0]
+            grad_a_next = dza @ self.wa.T[:, :self.hiddenDimension]
+
+        self.dwy = dwy / self.shape[0] / self.shape[1]
+        self.dby = dby / self.shape[0] / self.shape[1]
+        self.dwa = dwa / self.shape[0] / self.shape[1]
+        self.dba = dba / self.shape[0] / self.shape[1]
 
         # 暂时未实现rnn前接rnn的反向传播
         return -1, -1
