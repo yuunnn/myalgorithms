@@ -5,8 +5,8 @@ from .loss import LOSS_MAP
 
 
 class Model:
-    def __init__(self, optimizer='sgd', loss='Crossentropy', max_iter=100, lr=0.01):
-        self.optimizer = OPTIMIZER_MAP[optimizer](lr)
+    def __init__(self, optimizer='sgd', loss='Crossentropy', max_iter=100, lr=0.01, decay=1):
+        self.optimizer = OPTIMIZER_MAP[optimizer](lr, decay)
         self.loss = LOSS_MAP[loss]()
         self.layer = []
         self.max_iter = max_iter
