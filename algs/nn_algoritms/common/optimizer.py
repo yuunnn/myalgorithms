@@ -25,6 +25,8 @@ class Sgd(Optimizer):
             elif isinstance(layer, Dense):
                 layer.w -= self.lr * layer.dw
                 layer.b -= self.lr * layer.db
+            elif isinstance(layer, Flatten):
+                continue
             else:
                 raise NotImplementedError
         self.lr *= self.decay

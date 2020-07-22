@@ -1,5 +1,6 @@
 import numpy as np
 from abc import ABC
+from functools import reduce
 
 
 class Activation(ABC):
@@ -186,10 +187,10 @@ class SimpleRNN(Layer):
         self.hidden_vectors = []
         self.output_vectors = []
         self.zy = []
-        alpha = np.zeros([self.shape[0], self.hiddenDimension])
+        alpha = np.zeros([x_input.shape[0], self.hiddenDimension])
         self.hidden_vectors.append(alpha)
         for i in range(self.shape[1]):
-            x_concat = np.concatenate([alpha, x_input[:, i, :].reshape(self.shape[0], self.shape[2])], axis=1)
+            x_concat = np.concatenate([alpha, x_input[:, i, :].reshape(x_input.shape[0], self.shape[2])], axis=1)
             za = x_concat @ self.wa + self.ba
             alpha = self.hidden_activations[i].forward(za)
             self.hidden_vectors.append(alpha)
@@ -236,3 +237,16 @@ class SimpleRNN(Layer):
 
         # 暂时未实现rnn前接rnn的反向传播
         return -1, -1
+
+
+class Flatten(Layer):
+    def __init__(self, input_shape):
+        self.input_shape = input_shape - 1
+        self.shape = None
+
+    def forward(self, x_input):
+        self.shape = x_input.shape
+        return x_input.reshape(x_input.shape[0], reduce(lambda x, y: x * y, x_input.shape[1:]))
+
+    def backward(self, grad, w=None):
+        return -1, (grad @ w).reshape(self.shape)

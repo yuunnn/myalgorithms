@@ -13,10 +13,10 @@ class Loss(ABC):
 class Mse(Loss):
 
     def loss(self, y_true, y_pre):
-        return np.mean((y_true - y_pre.reshape(-1)) ** 2)
+        return np.mean((y_true - y_pre) ** 2)
 
     def grad(self, y_true, y_pre):
-        return (y_pre.reshape(-1) - y_true).reshape(-1, 1)
+        return y_pre - y_true
 
 
 class Mse2d(Loss):

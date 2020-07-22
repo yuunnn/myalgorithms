@@ -5,12 +5,14 @@ from .loss import LOSS_MAP
 
 
 class Model:
-    def __init__(self, optimizer='sgd', loss='Crossentropy', max_iter=100, lr=0.01, decay=1):
+    def __init__(self, optimizer='sgd', loss='Crossentropy', max_iter=100, lr=0.01, decay=1, early_stop=True, tol=1e-6):
         self.optimizer = OPTIMIZER_MAP[optimizer](lr, decay)
         self.loss = LOSS_MAP[loss]()
         self.layer = []
         self.max_iter = max_iter
         self.history = {'loss': []}
+        self.early_stop = early_stop
+        self.tol = tol
 
     def add(self, layer):
         self.layer.append(layer)
@@ -43,6 +45,9 @@ class Model:
             grad = self.loss.grad(y, res)
             self.backward(grad)
             self.step()
+            if self.early_stop:
+                if loss < self.tol:
+                    break
 
     def predict(self, x):
         return self.forward(x)
