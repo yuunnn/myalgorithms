@@ -7,6 +7,7 @@ from algs.utils import compute_mse
 
 x, y = load_boston(return_X_y=1)
 x = (x - np.min(x, axis=0)) / (np.max(x, axis=0) - np.min(x, axis=0))
+y = y.reshape(-1, 1)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=50)
 
 model = Model(lr=0.01, max_iter=1500, loss="Mse")
