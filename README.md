@@ -6,7 +6,7 @@
 &emsp;&emsp;&emsp;&emsp;layer: Dense, SimpleRnn<br>
 &emsp;&emsp;&emsp;&emsp;activation: linear sigmoid tanh softmax relu leakyrelu<br>
 &emsp;&emsp;&emsp;&emsp;loss: mse Crossentropy_with_softmax<br>
-&emsp;&emsp;&emsp;&emsp;optimizer: sgd<br>)
+&emsp;&emsp;&emsp;&emsp;optimizer: sgd sgd_with_momentum<br>)
 
 ## ml_algorithms
 1 cart regression<br>
