@@ -18,13 +18,13 @@ for i in range(1000):
 x = np.array(x).reshape(1000, 50, 1)
 y = np.array(y).reshape(1000, 1)
 
-model = Model(lr=0.9, max_iter=2500, loss="Mse", optimizer='sgd_with_momentum', decay=0.9999,
-              early_stop=True, tol=2e-4, momentum_beta=0.9)
+model = Model(lr=0.1, max_iter=2500, loss="Mse", optimizer='sgd_with_momentum', decay=0.9999,
+              early_stop=True, tol=2e-4, momentum_beta=0.9, batch_size=32, shuffle=1)
 model.add(SimpleRNN(hidden_activation='tanh',
                     output_activation='tanh',
                     max_length=50,
                     features=1,
-                    hiddenDimension=15,
+                    hiddenDimension=20,
                     outputsDimension=1))
 model.add(Flatten(input_shape=3))
 # many to one的时候Flatten层后面一层的单元数量必须和rnn层时间步长一致

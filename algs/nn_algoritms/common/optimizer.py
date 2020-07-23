@@ -1,4 +1,3 @@
-from abc import ABC
 from .layer import *
 
 
@@ -10,8 +9,12 @@ class Optimizer(ABC):
     def compute(self, *args, **kwargs):
         raise NotImplementedError
 
+    def get_decay(self):
+        self.lr *= self.decay
+
 
 class Sgd(Optimizer):
+    """实际上是 batch GD 或者mini batch GD"""
     def __init__(self, lr, decay):
         super().__init__(lr, decay)
 
@@ -29,10 +32,10 @@ class Sgd(Optimizer):
                 continue
             else:
                 raise NotImplementedError
-        self.lr *= self.decay
 
 
 class Sgd_with_Momentum(Optimizer):
+    """实际上是mini batch GD with momentum"""
     def __init__(self, lr, decay, beta):
         super().__init__(lr, decay)
         self.beta = beta
@@ -71,7 +74,6 @@ class Sgd_with_Momentum(Optimizer):
                 continue
             else:
                 raise NotImplementedError
-        self.lr *= self.decay
 
 
 OPTIMIZER_MAP = {'sgd': Sgd, 'sgd_with_momentum': Sgd_with_Momentum}
