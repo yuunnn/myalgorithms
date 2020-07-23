@@ -5,7 +5,7 @@ import numpy as np
 x = np.array([[0, 1], [1, 1], [0, 0], [0, 1]])
 y = np.array([1, 0, 0, 1])
 
-model = Model(lr=0.02, max_iter=10000, loss="Crossentropy_with_softmax")
+model = Model(lr=0.02, epoch=10000, loss="Crossentropy_with_softmax")
 model.add(Dense(activation='leakyrelu', units=50))
 model.add(Dense(activation='tanh', units=25))
 model.add(Dense(activation='softmax', units=2))

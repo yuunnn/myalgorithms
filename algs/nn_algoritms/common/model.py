@@ -5,7 +5,7 @@ from .loss import LOSS_MAP
 
 
 class Model:
-    def __init__(self, optimizer='sgd', loss='Crossentropy', max_iter=100, lr=0.01, decay=1, early_stop=True,
+    def __init__(self, optimizer='sgd', loss='Crossentropy', epoch=100, lr=0.01, decay=1, early_stop=True,
                  tol=1e-6, momentum_beta=0.9, batch_size=-1, shuffle=False):
         if optimizer == 'sgd_with_momentum':
             self.optimizer = OPTIMIZER_MAP[optimizer](lr, decay, momentum_beta)
@@ -15,7 +15,7 @@ class Model:
             raise NotImplementedError("optimizer now should be sgd or sgd_with_momentum")
         self.loss = LOSS_MAP[loss]()
         self.layer = []
-        self.max_iter = max_iter
+        self.epoch = epoch
         self.history = {'loss': []}
         self.early_stop = early_stop
         self.tol = tol
@@ -45,7 +45,7 @@ class Model:
     def fit(self, x, y, watch_loss=False):
         _x = x[:]
         _y = y[:]
-        for _iter in range(self.max_iter):
+        for _epoch in range(self.epoch):
             if self.shuffle:
                 _index = list(range(_x.shape[0]))
                 np.random.shuffle(_index)
@@ -68,7 +68,7 @@ class Model:
             loss = self.loss.loss(_y, res)
             self.history['loss'].append(loss)
             if watch_loss:
-                print("iter {}:    {}".format(_iter, loss))
+                print("epoch {}:    {}".format(_epoch, loss))
             if self.early_stop:
                 if loss < self.tol:
                     break

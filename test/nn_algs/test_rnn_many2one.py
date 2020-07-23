@@ -18,7 +18,7 @@ for i in range(1000):
 x = np.array(x).reshape(1000, 50, 1)
 y = np.array(y).reshape(1000, 1)
 
-model = Model(lr=0.9, max_iter=2500, loss="Mse", optimizer='sgd', decay=0.9999, early_stop=True, tol=2e-4)
+model = Model(lr=0.9, epoch=2500, loss="Mse", optimizer='sgd', decay=0.9999, early_stop=True, tol=2e-4)
 model.add(SimpleRNN(hidden_activation='tanh',
                     output_activation='tanh',
                     max_length=50,

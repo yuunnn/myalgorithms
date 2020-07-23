@@ -10,7 +10,7 @@ x = (x - np.min(x, axis=0)) / (np.max(x, axis=0) - np.min(x, axis=0))
 y = y.reshape(-1, 1)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=50)
 
-model = Model(lr=0.01, max_iter=1500, loss="Mse")
+model = Model(lr=0.01, epoch=1500, loss="Mse")
 model.add(Dense(activation='leakyrelu', units=64))
 model.add(Dense(activation='tanh', units=32))
 model.add(Dense(activation='linear', units=1))
