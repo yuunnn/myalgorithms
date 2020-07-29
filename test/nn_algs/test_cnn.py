@@ -3,7 +3,7 @@ from algs.nn_algoritms.common.model import Model
 from algs.nn_algoritms.common.layer import Dense, Conv2d, Flatten
 from tensorflow.keras.datasets import cifar10
 warnings.filterwarnings("ignore")
-1
+
 
 (train_images, train_labels), (test_images, test_labels) = cifar10.load_data()
 train_images = (train_images / 255).astype('float16').transpose([0, 3, 2, 1])
