@@ -31,16 +31,15 @@ class Mse2d(Loss):
 class Crossentropy_with_softmax(Loss):
     """y_true should be in (0.1.2...n)"""
 
-    def __init__(self):
+    def __init__(self, classes):
         self.y_true_one_hot = None
+        self.classes = classes
 
-    @staticmethod
-    def to_onehot(y):
-        classes = len(set(y))
+    def to_onehot(self, y):
         y_true_one_hot = np.array(
-            [[1 if _class == m else 0 for _class in range(classes)] for m in y])
+            [[1 if _class == m else 0 for _class in range(self.classes)] for m in y])
         return y_true_one_hot
-        
+
     def loss(self, y_true, y_pre):
         m = len(y_true)
         y_true_one_hot = self.to_onehot(y_true)
