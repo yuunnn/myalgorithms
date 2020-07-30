@@ -264,7 +264,7 @@ class ZeroPadding2d(Layer):
         self.backward_weight = np.ones(input_shape)
         self.backward_weight = np.pad(self.backward_weight, ((self.l, self.r), (self.l, self.r)),
                                       'constant', constant_values=0)
-        return np.pad(((0, 0), (0, 0), (self.l, self.r), (self.l, self.r)), 'constant', constant_values=0)
+        return np.pad(x_input, ((0, 0), (0, 0), (self.l, self.r), (self.l, self.r)), 'constant', constant_values=0)
 
     def backward(self, grad, w=-1):
         if w == -1:
@@ -334,72 +334,36 @@ class Conv2d(Layer):
         n, c, w, h = x_input.shape
         self.shape = x_input.shape
         self.m = n
-        self.w = np.random.normal(size=[self.units, c, self.kernel_size[0], self.kernel_size[1]]) * 0.01
+        if self.w is None:
+            self.w = np.random.normal(size=[self.units, c, self.kernel_size[0], self.kernel_size[1]]) * 0.01
 
         # 然后再按照dot的窗口进行split
         x_input = self.split_by_strides(x_input, kh=self.kernel_size[0], kw=self.kernel_size[1], s=self.strides)
         self.input_split = x_input
 
-        self.w = np.random.normal(size=[self.units, c, self.kernel_size[0], self.kernel_size[1]])
         return self.activation.forward(
             np.tensordot(x_input, self.w, axes=[(1, 4, 5), (1, 2, 3)]).transpose([0, 3, 1, 2]) +
             self.b.reshape(-1, 1, 1)).astype('float16')
 
     def backward(self, w, grad):
+
+        # 这部分的推导可以看 /resource下的cnn_bp.md
         if w != -1:
             grad = grad @ w
 
         self.dz = grad * self.activation.backward()
-        """
-        dw的更新这么去理解（用模型为test_cnn，数据为cifar10的最后一个cnn层来理解）
-        
-        dz的shape（32，32，28，28）表示（样本数，下一层的通道数（这一轮的卷积核数），下一层的W，下一层的H）
-         input_split的shape(32,16,28,28,3,3)表示（样本数，通道数，（28,28)指的是下一轮的W和H，(3,3)表示卷积核大小)
-
-        np.tensordot(self.dz, self.input_split, axes=[(0,2, 3), (0, 2, 3)])表示，按照(样本数，28,28)的这个轴进行dot，并广播，得到的
-        shape为（32,16,3,3）表示（卷积核数，通道数，卷积核大小）
-        
-        具体的tensordot过程为：
-        
-        1 首先对dz（:,:,28,28)维度的元素 * input(:,:,28,28)的(3,3) 每一个元素相乘 得到（32，32，16，3，3)
-        
-        可以这么理解，首先把样本数去除，那么
-        dz的shape为（32，28，28）
-        input的shape(16,28,28,3,3)
-        
-        然后把每个卷积核的数量去掉，那么
-        dz的shape为（28，28)
-        
-        在前向传播中，
-        input经过np的as_strided的函数分裂为(16,28,28,3,3)，指形状为(16,3,3）的卷积核与input(16,3,3）的区域对应相乘相加得到一个1个值，并且这个操作要执行(28,28)次，那么
-        在后向传播的时候用tensordot在28，28这个维度，让每一个dz的值都乘以input的(16,3,3)的值，并且加在一起，就是对应的梯度了。（就是上面一行的操作反一下， 把这个28*28次的操作对应的结果加在一起。
-        
-        
-        2 然后对每一个样本都执行上面的操作，相加，得到(32,16,3,3）
-        """
-
         self.dw = np.tensordot(self.dz, self.input_split, axes=[(0, 2, 3), (0, 2, 3)]) / self.m
         self.db = np.mean(self.dz, axis=(0, 2, 3))
 
-        """
-        d_input_x的部分这么去理解：
-        dz的shape（32，32，28，28)
-        w的shape为（32,16,3,3)
-        input的shape为（32，16，30，30）
-        首先把dz pad到和input同样大小的shape，然后同样用as_strided分裂到和input_split一样的大小，那么
-        分裂后的这个view去tensordot self.w，就是input的每个元素对应的梯度
-        
-        """
-
-        pad_diff = self.shape[2] - self.dz.shape[2]
-        if pad_diff % 2 == 0:
-            self.padding_layer_bp = ZeroPadding2d(pad_diff // 2, pad_diff // 2)
-        else:
-            self.padding_layer_bp = ZeroPadding2d(pad_diff // 2, pad_diff // 2 + 1)
+        pad_diff = 2 * (self.shape[2] - self.dz.shape[2]) * self.strides
+        self.padding_layer_bp = ZeroPadding2d(pad_diff // 2, pad_diff // 2)
         self.dz = self.padding_layer_bp.forward(self.dz)
         self.dz = self.split_by_strides(self.dz, kh=self.kernel_size[0], kw=self.kernel_size[1], s=self.strides)
+        # 翻转180度
+        self.dz = np.fliplr(self.dz[:, :, :, :])
+        self.dz = np.flipud(self.dz[:, :, :, :])
         # 这里炫个技，其实和算dw的tensor dot一样的
-        grad = np.einsum('mcab,ncwhab->ncwh', self.w, self.dz)
+        grad = np.einsum('mcab,nmwhab->ncwh', self.w, self.dz)
         if self.padding_layer is not None:
             return self.padding_layer.backward(w=-1, grad=grad)
         return -1, grad

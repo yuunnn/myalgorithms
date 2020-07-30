@@ -59,7 +59,7 @@ class Sgd_with_Momentum(Optimizer):
                 layer.wa -= self.lr * layer.vdwa
                 layer.ba -= self.lr * layer.vdba
 
-            elif isinstance(layer, Dense):
+            elif isinstance(layer, Dense) or isinstance(layer, Conv2d):
                 if not hasattr(layer, 'vdw'):
                     layer.vdw = 0
                     layer.vdb = 0

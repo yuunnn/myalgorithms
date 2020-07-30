@@ -63,19 +63,18 @@ class Model:
 
             for i in range(batch_nums):
                 res = self.forward(_x[i * self.batch_size: (i + 1) * self.batch_size])
+                loss = self.loss.loss(_y[i * self.batch_size: (i + 1) * self.batch_size], res)
+                self.history['loss'].append(loss)
+                if watch_loss:
+                    print("epoch {} batch {}:    {}".format(_epoch, i, loss))
+                if self.early_stop:
+                    if loss < self.tol:
+                        break
                 grad = self.loss.grad(_y[i * self.batch_size:(i + 1) * self.batch_size], res)
                 self.backward(grad)
                 self.step()
 
             self.optimizer.get_decay()
-            res = self.forward(_x)
-            loss = self.loss.loss(_y, res)
-            self.history['loss'].append(loss)
-            if watch_loss:
-                print("epoch {}:    {}".format(_epoch, loss))
-            if self.early_stop:
-                if loss < self.tol:
-                    break
 
     def predict(self, x):
         return self.forward(x)
