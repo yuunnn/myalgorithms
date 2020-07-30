@@ -3,7 +3,7 @@
 ## nn_algorithms
 1 Automatic differentiation<br>
 2 my nn framework(<br>
-&emsp;&emsp;&emsp;&emsp;layer: Dense, SimpleRnn<br>
+&emsp;&emsp;&emsp;&emsp;layer: Dense, SimpleRnn, Conv2d, Flatten<br>
 &emsp;&emsp;&emsp;&emsp;activation: linear sigmoid tanh softmax relu leakyrelu<br>
 &emsp;&emsp;&emsp;&emsp;loss: mse Crossentropy_with_softmax<br>
 &emsp;&emsp;&emsp;&emsp;optimizer: sgd sgd_with_momentum<br>)
