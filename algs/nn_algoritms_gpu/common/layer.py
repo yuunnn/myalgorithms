@@ -260,9 +260,9 @@ class ZeroPadding2d(Layer):
         self.backward_weight = None
 
     def forward(self, x_input):
-        input_shape = x_input.shape[-2:]
+        input_shape = x_input.shape
         self.backward_weight = np.ones(input_shape)
-        self.backward_weight = np.pad(self.backward_weight, ((self.l, self.r), (self.l, self.r)),
+        self.backward_weight = np.pad(self.backward_weight, ((0, 0), (0, 0), (self.l, self.r), (self.l, self.r)),
                                       'constant', constant_values=0)
         return np.pad(x_input, ((0, 0), (0, 0), (self.l, self.r), (self.l, self.r)), 'constant', constant_values=0)
 
