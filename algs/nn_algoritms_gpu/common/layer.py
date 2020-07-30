@@ -257,19 +257,17 @@ class ZeroPadding2d(Layer):
     def __init__(self, l, r):
         self.l = l
         self.r = r
-        self.backward_weight = None
 
     def forward(self, x_input):
-        input_shape = x_input.shape
-        self.backward_weight = np.ones(input_shape)
-        self.backward_weight = np.pad(self.backward_weight, ((0, 0), (0, 0), (self.l, self.r), (self.l, self.r)),
-                                      'constant', constant_values=0)
         return np.pad(x_input, ((0, 0), (0, 0), (self.l, self.r), (self.l, self.r)), 'constant', constant_values=0)
+
+    def clip(self, grad):
+        return grad[:, :, self.l:-self.r, self.l:-self.r]
 
     def backward(self, grad, w=-1):
         if w == -1:
-            return -1, grad * self.backward_weight
-        return -1, (grad @ w) * self.backward_weight
+            return -1, self.clip(grad)
+        return -1, self.clip(grad @ w)
 
 
 class Conv2d(Layer):
