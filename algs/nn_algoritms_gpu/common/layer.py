@@ -322,7 +322,7 @@ class Conv2d(Layer):
 
         # 首先进行padding
         if self.padding == 'same':
-            padding_size = ((x_input.shape[2] - 1) * self.strides + self.kernel_size[0] - x_input.shape[2])
+            padding_size = (x_input.shape[2] - 1) * self.strides + self.kernel_size[0] - x_input.shape[2]
             if padding_size % 2 == 0:
                 self.padding_layer = ZeroPadding2d(padding_size // 2, padding_size // 2)
             else:
