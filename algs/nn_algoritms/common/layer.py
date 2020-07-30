@@ -360,8 +360,8 @@ class Conv2d(Layer):
         self.dz = self.padding_layer_bp.forward(self.dz)
         self.dz = self.split_by_strides(self.dz, kh=self.kernel_size[0], kw=self.kernel_size[1], s=self.strides)
         # 翻转180度
-        self.dz = np.fliplr(self.dz[:, :, :, :])
-        self.dz = np.flipud(self.dz[:, :, :, :])
+        self.dz = np.flip(self.dz, axis=4)
+        self.dz = np.flip(self.dz, axis=4)
         # 这里炫个技，其实和算dw的tensor dot一样的
         grad = np.einsum('mcab,nmwhab->ncwh', self.w, self.dz)
         if self.padding_layer is not None:

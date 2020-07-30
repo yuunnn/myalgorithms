@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 train_images = (train_images / 255).astype('float16').transpose([0, 3, 2, 1])
 test_images = (test_images / 255).astype('float16').transpose([0, 3, 2, 1])
 
-model = Model(lr=0.1, epoch=250, loss="Crossentropy_with_softmax", classes=10,
+model = Model(lr=0.05, epoch=250, loss="Crossentropy_with_softmax", classes=10,
               optimizer='sgd_with_momentum', decay=0.9999,
               early_stop=True, tol=2e-4, momentum_beta=0.9, batch_size=256, shuffle=1)
 model.add(Conv2d(activation='leakyrelu', units=16, kernel_size=[3, 3], strides=1, padding='valid'))
