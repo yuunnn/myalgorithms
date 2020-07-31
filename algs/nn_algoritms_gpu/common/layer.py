@@ -14,6 +14,9 @@ class Activation(ABC):
     def backward(self):
         raise NotImplementedError
 
+    def clean(self):
+        raise NotImplementedError
+
 
 class Relu(Activation):
     def __init__(self):
@@ -25,6 +28,10 @@ class Relu(Activation):
 
     def backward(self):
         return (self._input > 0) * 1
+
+    def clean(self):
+        if self._input is not None:
+            self._input = None
 
 
 class LeakyRelu(Activation):
@@ -42,6 +49,10 @@ class LeakyRelu(Activation):
         left = (self._input < 0) * 1 * 0.001
         return right + left
 
+    def clean(self):
+        if self._input is not None:
+            self._input = None
+
 
 class Sigmoid(Activation):
     def __init__(self):
@@ -55,6 +66,11 @@ class Sigmoid(Activation):
 
     def backward(self):
         return self.g * (1 - self.g)
+
+    def clean(self):
+        if self._input is not None:
+            self._input = None
+            self.g = None
 
 
 class Tanh(Activation):
@@ -70,6 +86,11 @@ class Tanh(Activation):
     def backward(self):
         return 1 - self.g ** 2
 
+    def clean(self):
+        if self._input is not None:
+            self._input = None
+            self.g = None
+
 
 class Linear(Activation):
     def __init__(self):
@@ -81,6 +102,10 @@ class Linear(Activation):
 
     def backward(self):
         return np.ones(self._input)
+
+    def clean(self):
+        if self._input is not None:
+            self._input = None
 
 
 class Softmax(Activation):
@@ -99,6 +124,11 @@ class Softmax(Activation):
         # softmax暂时只能和Crossentropy_with_softmax一起用，并且不能作为普通的激活函数使用
         return 1
 
+    def clean(self):
+        if self._input is not None:
+            self._input = None
+            self.g = None
+
 
 class Layer(ABC):
     ACTIVATION_MAP = {'relu': Relu, 'sigmoid': Sigmoid, 'linear': Linear, 'softmax': Softmax, 'tanh': Tanh,
@@ -108,6 +138,9 @@ class Layer(ABC):
         raise NotImplementedError
 
     def backward(self, w, grad):
+        raise NotImplementedError
+
+    def clean(self):
         raise NotImplementedError
 
 
@@ -142,6 +175,21 @@ class Dense(Layer):
         self.dw = self.dz.T @ self._input / self.m
         self.db = np.mean(self.dz, axis=0)
         return self.w, self.dz
+
+    def clean(self):
+        if self._input is not None:
+            self.m = None
+            self._input = None
+            self.dz = None
+            self.dw = None
+            self.db = None
+
+        if hasattr(self, "vdw"):
+            del self.vdw
+        if hasattr(self, "vdb"):
+            del self.vdb
+
+        self.activation.clean()
 
 
 class SimpleRNN(Layer):
@@ -239,6 +287,18 @@ class SimpleRNN(Layer):
         # 暂时未实现rnn前接rnn的反向传播
         return -1, -1
 
+    def clean(self):
+        if self.hidden_vectors is not []:
+            self.hidden_vectors = []
+            self.output_vectors = []
+            self.zy = []
+
+        for ac in self.hidden_activations:
+            ac.clean()
+
+        for ac in self.output_activations:
+            ac.clean()
+
 
 class Flatten(Layer):
     def __init__(self, input_shape):
@@ -251,6 +311,9 @@ class Flatten(Layer):
 
     def backward(self, grad, w=None):
         return -1, (grad @ w).reshape(self.shape)
+
+    def clean(self):
+        pass
 
 
 class ZeroPadding2d(Layer):
@@ -268,6 +331,9 @@ class ZeroPadding2d(Layer):
         if w == -1:
             return -1, self.clip(grad)
         return -1, self.clip(grad @ w)
+
+    def clean(self):
+        pass
 
 
 class Conv2d(Layer):
@@ -366,3 +432,17 @@ class Conv2d(Layer):
         if self.padding_layer is not None:
             return self.padding_layer.backward(w=-1, grad=grad)
         return -1, grad
+
+    def clean(self):
+        if self.input_split is not None:
+            self.input_split = None
+            self.dz = None
+            self.dw = None
+            self.db = None
+
+        if hasattr(self, "vdw"):
+            del self.vdw
+        if hasattr(self, "vdb"):
+            del self.vdb
+
+        self.activation.clean()

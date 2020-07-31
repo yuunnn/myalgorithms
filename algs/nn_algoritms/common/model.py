@@ -78,3 +78,7 @@ class Model:
 
     def predict(self, x):
         return self.forward(x)
+
+    def clean(self):
+        for _layer in self.layer:
+            _layer.clean()
