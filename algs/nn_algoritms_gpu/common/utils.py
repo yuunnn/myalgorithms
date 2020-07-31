@@ -12,8 +12,5 @@ def save_model(model, file_path, clean=True):
 
 
 def load_model(file_path):
-    res = bytes("", encoding='utf-8')
-    with open(file_path, 'rb') as f:
-        lines = f.readlines()
-        res += reduce(lambda x, y: x + y, lines)
-    return dill.loads(res)
+    f = open(file_path, "rb")
+    return dill.load(f)

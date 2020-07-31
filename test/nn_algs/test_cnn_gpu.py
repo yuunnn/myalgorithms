@@ -15,12 +15,15 @@ test_labels = np.array(test_labels)
 train_images = (train_images / 255).astype('float16').transpose([0, 3, 2, 1])
 test_images = (test_images / 255).astype('float16').transpose([0, 3, 2, 1])
 
-model = Model(lr=0.02, epoch=60, loss="Crossentropy_with_softmax", classes=10,
-              optimizer='sgd_with_momentum', decay=0.9999,
-              early_stop=True, tol=2e-4, momentum_beta=0.9, batch_size=1048, shuffle=1)
-model.add(Conv2d(activation='leakyrelu', units=16, kernel_size=[3, 3], strides=1, padding='valid'))
+model = Model(lr=0.005, epoch=150, loss="Crossentropy_with_softmax", classes=10,
+              optimizer='sgd_with_momentum', decay=0.99995,
+              early_stop=True, tol=2e-4, momentum_beta=0.9, batch_size=8, shuffle=1)
 model.add(Conv2d(activation='leakyrelu', units=32, kernel_size=[3, 3], strides=1, padding='valid'))
+model.add(Conv2d(activation='leakyrelu', units=64, kernel_size=[3, 3], strides=1, padding='valid'))
+model.add(Conv2d(activation='leakyrelu', units=128, kernel_size=[3, 3], strides=1, padding='valid'))
+
 model.add(Flatten(input_shape=4))
+model.add(Dense(activation='leakyrelu', units=256))
 model.add(Dense(activation='softmax', units=10))
 model.fit(train_images, train_labels, watch_loss=1)
 

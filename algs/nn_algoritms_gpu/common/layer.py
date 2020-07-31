@@ -191,6 +191,9 @@ class Dense(Layer):
 
         self.activation.clean()
 
+        self.w = np.asnumpy(self.w)
+        self.b = np.asnumpy(self.b)
+
 
 class SimpleRNN(Layer):
     def __init__(self, hidden_activation, output_activation, max_length, features, hiddenDimension, outputsDimension):
@@ -298,6 +301,22 @@ class SimpleRNN(Layer):
 
         for ac in self.output_activations:
             ac.clean()
+
+        self.wa = np.asnumpy(self.wa)
+        self.wy = np.asnumpy(self.wy)
+        self.ba = np.asnumpy(self.ba)
+        self.by = np.asnumpy(self.by)
+
+        self.dwa = None
+        self.dwy = None
+        self.dba = None
+        self.dby = None
+
+        if hasattr(self, "vdwa"):
+            del self.vdwa
+            del self.vdwy
+            del self.vdba
+            del self.vdby
 
 
 class Flatten(Layer):
@@ -446,3 +465,7 @@ class Conv2d(Layer):
             del self.vdb
 
         self.activation.clean()
+
+        self.w = np.asnumpy(self.w)
+        self.b = np.asnumpy(self.b)
+

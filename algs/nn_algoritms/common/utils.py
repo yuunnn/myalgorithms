@@ -17,3 +17,8 @@ def load_model(file_path):
         lines = f.readlines()
         res += reduce(lambda x, y: x + y, lines)
     return dill.loads(res)
+
+
+def load_model(file_path):
+    f = open(file_path, "rb")
+    return dill.load(f)

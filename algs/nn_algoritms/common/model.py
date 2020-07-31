@@ -74,7 +74,7 @@ class Model:
                 self.backward(grad)
                 self.step()
 
-            self.optimizer.get_decay()
+                self.optimizer.get_decay()
 
     def predict(self, x):
         return self.forward(x)
