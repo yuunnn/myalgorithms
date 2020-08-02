@@ -2,6 +2,7 @@ import cupy as np
 from abc import ABC
 from functools import reduce
 from cupy.lib.stride_tricks import as_strided
+import numpy
 
 
 class Activation(ABC):
@@ -397,6 +398,25 @@ class Conv2d(Layer):
         A = as_strided(X, shape=(N, C, oh, ow, kh, kw), strides=strides)
         return A
 
+    @staticmethod
+    def split_by_strides_numpy(X, kh, kw, s):
+        """
+         reference 1,一种卷积算法的高效实现 :https://zhuanlan.zhihu.com/p/64933417
+         (forward 借鉴了这个，backward是自己推的）
+
+        :param X: 原矩阵
+        :param kh: 卷积核h
+        :param kw: 卷积核w
+        :param s: 步长
+        :return:
+        """
+        N, C, H, W = X.shape
+        oh = (H - kh) // s + 1
+        ow = (W - kw) // s + 1
+        strides = (*X.strides[:-2], X.strides[-2] * s, X.strides[-1] * s, *X.strides[-2:])
+        A = numpy.lib.stride_tricks.as_strided(X, shape=(N, C, oh, ow, kh, kw), strides=strides)
+        return A
+
     def forward(self, x_input):
         """
         :param x_input:  n,c,w.h
@@ -468,4 +488,4 @@ class Conv2d(Layer):
 
         self.w = np.asnumpy(self.w)
         self.b = np.asnumpy(self.b)
-
+        self.split_by_strides = self.split_by_strides_numpy

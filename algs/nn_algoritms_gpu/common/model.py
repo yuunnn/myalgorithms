@@ -82,3 +82,4 @@ class Model:
     def clean(self):
         for _layer in self.layer:
             _layer.clean()
+        self.fit = None
