@@ -13,4 +13,6 @@ def save_model(model, file_path, clean=True):
 
 def load_model(file_path):
     f = open(file_path, "rb")
-    return dill.load(f)
+    m = dill.load(f)
+    m.clean = None
+    return m

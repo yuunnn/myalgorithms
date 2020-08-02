@@ -83,3 +83,6 @@ class Model:
         for _layer in self.layer:
             _layer.clean()
         self.fit = None
+        self.history["loss"] = np.asnumpy(self.history["loss"])
+        if "np" in locals().keys():
+            del np
