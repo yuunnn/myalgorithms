@@ -75,6 +75,7 @@ class Model:
                 self.step()
 
                 self.optimizer.get_decay()
+        self.history["loss"] = np.asnumpy(self.history["loss"])
 
     def predict(self, x):
         return self.forward(x)
@@ -83,6 +84,5 @@ class Model:
         for _layer in self.layer:
             _layer.clean()
         self.fit = None
-        self.history["loss"] = np.asnumpy(self.history["loss"])
         if "np" in locals().keys():
             del np
