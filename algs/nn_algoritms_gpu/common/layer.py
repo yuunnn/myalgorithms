@@ -27,12 +27,18 @@ class Relu(Activation):
         self._input = x_input
         return np.maximum(x_input, 0)
 
+    def forward_numpy(self, x_input):
+        self._input = x_input
+        return numpy.maximum(x_input, 0)
+
     def backward(self):
         return (self._input > 0) * 1
 
     def clean(self):
         if self._input is not None:
             self._input = None
+        self.forward = self.forward_numpy
+
 
 
 class LeakyRelu(Activation):
@@ -45,6 +51,12 @@ class LeakyRelu(Activation):
         left = np.min(x_input * 0.001, 0)
         return right + left
 
+    def forward_numpy(self, x_input):
+        self._input = x_input
+        right = numpy.maximum(x_input, 0)
+        left = numpy.min(x_input * 0.001, 0)
+        return right + left
+
     def backward(self):
         right = (self._input >= 0) * 1
         left = (self._input < 0) * 1 * 0.001
@@ -53,6 +65,7 @@ class LeakyRelu(Activation):
     def clean(self):
         if self._input is not None:
             self._input = None
+        self.forward = self.forward_numpy
 
 
 class Sigmoid(Activation):
@@ -65,6 +78,11 @@ class Sigmoid(Activation):
         self._input = x_input
         return self.g
 
+    def forward_numpy(self, x_input):
+        self.g = 1 / (1 + numpy.exp(-x_input))
+        self._input = x_input
+        return self.g
+
     def backward(self):
         return self.g * (1 - self.g)
 
@@ -72,6 +90,7 @@ class Sigmoid(Activation):
         if self._input is not None:
             self._input = None
             self.g = None
+        self.forward = self.forward_numpy
 
 
 class Tanh(Activation):
@@ -84,6 +103,11 @@ class Tanh(Activation):
         self.g = np.tanh(x_input)
         return self.g
 
+    def forward_numpy(self, x_input):
+        self._input = x_input
+        self.g = numpy.tanh(x_input)
+        return self.g
+
     def backward(self):
         return 1 - self.g ** 2
 
@@ -91,6 +115,7 @@ class Tanh(Activation):
         if self._input is not None:
             self._input = None
             self.g = None
+        self.forward = self.forward_numpy
 
 
 class Linear(Activation):
@@ -121,6 +146,12 @@ class Softmax(Activation):
         self.g = exps / np.sum(exps, axis=1, keepdims=True)
         return self.g
 
+    def forward_numpy(self, x_input):
+        exps = numpy.exp(x_input)
+        self._input = x_input
+        self.g = exps / numpy.sum(exps, axis=1, keepdims=True)
+        return self.g
+
     def backward(self):
         # softmax暂时只能和Crossentropy_with_softmax一起用，并且不能作为普通的激活函数使用
         return 1
@@ -129,6 +160,7 @@ class Softmax(Activation):
         if self._input is not None:
             self._input = None
             self.g = None
+        self.forward = self.forward_numpy
 
 
 class Layer(ABC):
@@ -166,6 +198,14 @@ class Dense(Layer):
 
         return self.activation.forward(x_input @ self.w.T + self.b)
 
+    def forward_numpy(self, x_input):
+        self._input = x_input
+        if self.w is None:
+            self.w = numpy.random.normal(size=[self.units, x_input.shape[1]]) * 0.01
+            self.m = x_input.shape[0]
+
+        return self.activation.forward(x_input @ self.w.T + self.b)
+
     def backward(self, w, grad):
         dg = self.activation.backward()
         if isinstance(w, int) and w == -1:
@@ -194,6 +234,8 @@ class Dense(Layer):
 
         self.w = np.asnumpy(self.w)
         self.b = np.asnumpy(self.b)
+
+        self.forward = self.forward_numpy
 
 
 class SimpleRNN(Layer):
@@ -230,6 +272,16 @@ class SimpleRNN(Layer):
                 res[i] += x_input[i][:self.max_length]
         return res
 
+    def padding_numpy(self, x_input):
+        res = numpy.zeros([len(x_input), self.max_length, len(x_input[0][0])])
+        for i in range(len(x_input)):
+            if len(x_input[i]) < self.max_length:
+                res[i] += numpy.concatenate([
+                    numpy.array(x_input[i]), numpy.zeros([self.max_length - len(x_input[i]), len(x_input[0][0])])], axis=0)
+            else:
+                res[i] += x_input[i][:self.max_length]
+        return res
+
     def forward(self, x_input: np.ndarray):
         if self.hidden_activations is None:
             x_input = self.padding(x_input)
@@ -253,6 +305,30 @@ class SimpleRNN(Layer):
             self.output_vectors.append(yt)
 
         return np.array(self.output_vectors).transpose([1, 0, 2])
+
+    def forward_numpy(self, x_input: np.ndarray):
+        if self.hidden_activations is None:
+            x_input = self.padding(x_input)
+            self.shape = x_input.shape
+            self._input = x_input
+            self.hidden_activations = [super().ACTIVATION_MAP[self.hidden_activation]()] * self.shape[1]
+            self.output_activations = [super().ACTIVATION_MAP[self.output_activation]()] * self.shape[1]
+        self.hidden_vectors = []
+        self.output_vectors = []
+        self.zy = []
+        alpha = numpy.zeros([x_input.shape[0], self.hiddenDimension])
+        self.hidden_vectors.append(alpha)
+        for i in range(self.shape[1]):
+            x_concat = numpy.concatenate([alpha, x_input[:, i, :].reshape(x_input.shape[0], self.shape[2])], axis=1)
+            za = x_concat @ self.wa + self.ba
+            alpha = self.hidden_activations[i].forward(za)
+            self.hidden_vectors.append(alpha)
+            zy = alpha @ self.wy + self.by
+            self.zy.append(zy)
+            yt = self.output_activations[i].forward(zy)
+            self.output_vectors.append(yt)
+
+        return numpy.array(self.output_vectors).transpose([1, 0, 2])
 
     def backward(self, grad, w=-1):
         if isinstance(w, int) and w == -1:
@@ -319,6 +395,9 @@ class SimpleRNN(Layer):
             del self.vdba
             del self.vdby
 
+        self.padding = self.padding_numpy
+        self.forward = self.forward_numpy
+
 
 class Flatten(Layer):
     def __init__(self, input_shape):
@@ -344,6 +423,9 @@ class ZeroPadding2d(Layer):
     def forward(self, x_input):
         return np.pad(x_input, ((0, 0), (0, 0), (self.l, self.r), (self.l, self.r)), 'constant', constant_values=0)
 
+    def forward_numpy(self, x_input):
+        return numpy.pad(x_input, ((0, 0), (0, 0), (self.l, self.r), (self.l, self.r)), 'constant', constant_values=0)
+
     def clip(self, grad):
         return grad[:, :, self.l:-self.r, self.l:-self.r]
 
@@ -353,7 +435,7 @@ class ZeroPadding2d(Layer):
         return -1, self.clip(grad @ w)
 
     def clean(self):
-        pass
+        self.forward = self.forward_numpy()
 
 
 class Conv2d(Layer):
@@ -448,6 +530,37 @@ class Conv2d(Layer):
             np.tensordot(x_input, self.w, axes=[(1, 4, 5), (1, 2, 3)]).transpose([0, 3, 1, 2]) +
             self.b.reshape(-1, 1, 1)).astype('float16')
 
+    def forward_numpy(self, x_input):
+        """
+        :param x_input:  n,c,w.h
+        """
+        assert x_input.dtype == 'float16', ValueError("输入图片请归一化到0-1，并且请astype到float16")
+        assert len(x_input.shape) == 4, ValueError("输入数据必须是4维的，分别是NCWH")
+        assert x_input.shape[2] == x_input.shape[3], ValueError("输入图片必须是正方形，维度分别是NCWH")
+
+        # 首先进行padding
+        if self.padding == 'same':
+            padding_size = (x_input.shape[2] - 1) * self.strides + self.kernel_size[0] - x_input.shape[2]
+            if padding_size % 2 == 0:
+                self.padding_layer = ZeroPadding2d(padding_size // 2, padding_size // 2)
+            else:
+                self.padding_layer = ZeroPadding2d(padding_size // 2, padding_size // 2 + 1)
+            x_input = self.padding_layer.forward(x_input)
+
+        n, c, w, h = x_input.shape
+        self.shape = x_input.shape
+        self.m = n
+        if self.w is None:
+            self.w = numpy.random.normal(size=[self.units, c, self.kernel_size[0], self.kernel_size[1]]) * 0.01
+
+        # 然后再按照dot的窗口进行split
+        x_input = self.split_by_strides(x_input, kh=self.kernel_size[0], kw=self.kernel_size[1], s=self.strides)
+        self.input_split = x_input
+
+        return self.activation.forward(
+            numpy.tensordot(x_input, self.w, axes=[(1, 4, 5), (1, 2, 3)]).transpose([0, 3, 1, 2]) +
+            self.b.reshape(-1, 1, 1)).astype('float16')
+
     def backward(self, w, grad):
 
         # 这部分的推导可以看 /resource下的cnn_bp.md
@@ -489,3 +602,4 @@ class Conv2d(Layer):
         self.w = np.asnumpy(self.w)
         self.b = np.asnumpy(self.b)
         self.split_by_strides = self.split_by_strides_numpy
+        self.forward = self.forward_numpy
