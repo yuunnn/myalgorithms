@@ -1,6 +1,19 @@
 import numpy as np
+
 from algs.utils import compute_mse
 from algs.utils import sigmoid
+
+
+def compute_mse(y1, y2):
+    if len(y1) != len(y2):
+        raise ValueError("y1.length != y2.length")
+    y1 = list(y1)
+    y2 = list(y2)
+    return sum([(y1[i] - y2[i]) ** 2 for i in range(len(y1))]) / len(y1)
+
+
+def sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
 
 
 class FM:
@@ -30,12 +43,7 @@ class FM:
                 diff = y[m] - y_hat[m]
                 dw += -0.5 * diff * x[m]
                 db += -0.5 * diff
-                # _inner_product = np.matmul(self.v, x[m])
-                # dv += -0.5 * diff * np.array([[
-                #     (x[m][n] * _inner_product[k] - self.v[k][n] * x[m][n] ** 2) for n in range(N)]
-                #     for k in range(self.k)])
 
-                # 以下的矩阵乘法由上面的列表生成式（循环）推导过来
                 dv += -0.5 * diff * (
                         np.matmul(np.matmul(self.v, x[m]).reshape(-1, 1), x[m].reshape(1, -1)) - x[m] ** 2 * self.v)
 
@@ -59,6 +67,14 @@ class FM:
         """
         return self.b + np.dot(x, self.w) + self._product(x)
 
+    def predict_proba(self, x: np.ndarray) -> np.ndarray:
+        """
+        :param x: shape [m,n]
+        """
+        if self.task_object == "regression":
+            raise KeyError("no probability in regression task")
+        return np.array([sigmoid(self._predict(x[i])) for i in range(len(x))])
+
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
         :param x: shape [m,n]
@@ -66,7 +82,8 @@ class FM:
         if self.task_object == "regression":
             res = [self._predict(x[i]) for i in range(len(x))]
         elif self.task_object == "classification":
-            res = [sigmoid(self._predict(x[i])) for i in range(len(x))]
+            temp = self.predict_proba(x)
+            res = (temp > 0.5) * 1
         else:
             raise KeyError("task_object should be regression or classification")
         return np.array(res)
