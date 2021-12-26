@@ -1,3 +1,5 @@
+from typing import Optional, Union
+
 from algs.data_structure_algorithms.tree import BinaryTree, Node
 import numpy as np
 
@@ -33,6 +35,11 @@ class NodeValue:
     @split.setter
     def split(self, split):
         self._split = split
+
+
+class CartNode(Node):
+    def __init__(self, value: Optional[Union[int, float, NodeValue]], color: Optional[int] = None):
+        super().__init__(value, color)
 
 
 class CartRegressor:
@@ -76,8 +83,8 @@ class CartRegressor:
 
             node.value.col = _col
             node.value.split = _split
-            node.left = Node(NodeValue(_split_y1))
-            node.right = Node(NodeValue(_split_y2))
+            node.left = CartNode(NodeValue(_split_y1))
+            node.right = CartNode(NodeValue(_split_y2))
 
             _index = _x[:, _col] < _split
             _build(node.left, depth - 1, _x[_index], _y[_index])
@@ -142,7 +149,7 @@ class CartClassifier:
                     d1 = val_index + 1
                     d2 = _len_y - val_index - 1
                     _tmp_loss = d1 * (1 - sum([(c_k / d1) ** 2 for c_k in _dict_y1.values()])) \
-                        + d2 * (1 - sum([(c_k / d2) ** 2 for c_k in _dict_y2.values()]))
+                                + d2 * (1 - sum([(c_k / d2) ** 2 for c_k in _dict_y2.values()]))
 
                     if _tmp_loss < _loss:
                         _col = col
@@ -153,8 +160,8 @@ class CartClassifier:
 
             node.value.col = _col
             node.value.split = _split
-            node.left = Node(NodeValue(_split_y1))
-            node.right = Node(NodeValue(_split_y2))
+            node.left = CartNode(NodeValue(_split_y1))
+            node.right = CartNode(NodeValue(_split_y2))
 
             _index = _x[:, _col] < _split
             _build(node.left, depth - 1, _x[_index], _y[_index])
